@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "@/components/SignOutButton";
-import { FEATURED_COURSES } from "@/lib/types";
+import { FEATURED_COURSES, WRITING_SUB_COURSES } from "@/lib/types";
 
 export default async function Header() {
   const supabase = createClient();
@@ -19,6 +19,24 @@ export default async function Header() {
       .single();
     displayName = profile?.full_name || user.email || null;
     isAdmin = profile?.role === "admin";
+  }
+
+  // Quiz counts for the "Writing Courses" hover menu below. Only readable
+  // once signed in (quizzes RLS), same as the homepage's course cards.
+  const writingCounts = new Map<string, number>();
+  if (user) {
+    const { data: writingQuizzes } = await supabase
+      .from("quizzes")
+      .select("category")
+      .in(
+        "category",
+        WRITING_SUB_COURSES.map((c) => c.category)
+      )
+      .returns<{ category: string | null }[]>();
+    for (const row of writingQuizzes ?? []) {
+      if (!row.category) continue;
+      writingCounts.set(row.category, (writingCounts.get(row.category) ?? 0) + 1);
+    }
   }
 
   return (
@@ -40,15 +58,64 @@ export default async function Header() {
           <Link href="/" className="hover:text-accent">
             Trang chủ
           </Link>
-          {FEATURED_COURSES.map((course) => (
-            <Link
-              key={course.category}
-              href={`/quizzes?category=${course.category}`}
-              className="hover:text-accent"
-            >
-              {course.title}
-            </Link>
-          ))}
+          {FEATURED_COURSES.map((course) =>
+            course.category === "writing" ? (
+              <div key={course.category} className="group relative">
+                <Link
+                  href="/writing"
+                  className="flex items-center gap-1 hover:text-accent"
+                >
+                  {course.title}
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    className="mt-px transition-transform group-hover:rotate-180"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                </Link>
+                <div className="invisible absolute left-0 top-full z-20 w-[300px] pt-3 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100">
+                  <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
+                    <div className="grid grid-cols-3 gap-2">
+                      {WRITING_SUB_COURSES.map((sub) => {
+                        const count = writingCounts.get(sub.category) ?? 0;
+                        return (
+                          <Link
+                            key={sub.category}
+                            href={`/quizzes?category=${sub.category}`}
+                            className="group/tile rounded-xl bg-accent-soft px-2 py-3 text-center transition-colors hover:bg-accent"
+                          >
+                            <div className="text-sm font-bold text-accent-strong group-hover/tile:text-white">
+                              {sub.title.replace(" Writing Course", "")}
+                            </div>
+                            <div className="mt-1 text-[11px] text-ink-faint group-hover/tile:text-white/80">
+                              {count > 0 ? `${count} quiz${count > 1 ? "zes" : ""}` : "Coming soon"}
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                    <Link
+                      href="/writing"
+                      className="mt-3 block rounded-lg bg-accent-soft py-2 text-center text-sm font-semibold text-accent-strong transition-colors hover:bg-accent hover:text-white"
+                    >
+                      Xem tất cả
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Link
+                key={course.category}
+                href={`/quizzes?category=${course.category}`}
+                className="hover:text-accent"
+              >
+                {course.title}
+              </Link>
+            )
+          )}
           <Link href="/results" className="hover:text-accent">
             My results
           </Link>
