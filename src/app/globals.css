@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #f8f1e1;
+  color: #2e2014;
+}
+
+/* Match the "level-tag" look from the public homepage. */
+.level-tag {
+  display: inline-flex;
+  align-self: flex-start;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #7a5119;
+  border: 1px solid #9c6b22;
+  background: #f0dfae;
+  padding: 4px 11px;
+  border-radius: 6px;
+}
