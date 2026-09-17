@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { FEATURED_COURSES } from "@/lib/types";
+import { FEATURED_COURSES, WRITING_SUB_COURSES } from "@/lib/types";
 
 export default async function HomePage() {
   const supabase = createClient();
@@ -79,8 +79,14 @@ export default async function HomePage() {
 
         <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {FEATURED_COURSES.map((course) => {
-            const count = countsByCategory.get(course.category) ?? 0;
-            const href = user ? `/quizzes?category=${course.category}` : "/signup";
+            const isWritingParent = course.category === "writing";
+            const count = isWritingParent
+              ? WRITING_SUB_COURSES.reduce(
+                  (sum, sub) => sum + (countsByCategory.get(sub.category) ?? 0),
+                  0
+                )
+              : countsByCategory.get(course.category) ?? 0;
+            const href = !user ? "/signup" : isWritingParent ? "/writing" : `/quizzes?category=${course.category}`;
             const badgeText = !user
               ? "Sign up to see what's available"
               : count > 0
