@@ -9,13 +9,15 @@ export default async function Header() {
   } = await supabase.auth.getUser();
 
   let displayName: string | null = null;
+  let isAdmin = false;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("full_name")
+      .select("full_name, role")
       .eq("id", user.id)
       .single();
     displayName = profile?.full_name || user.email || null;
+    isAdmin = profile?.role === "admin";
   }
 
   return (
@@ -40,6 +42,11 @@ export default async function Header() {
           <Link href="/results" className="hover:text-ink">
             My results
           </Link>
+          {isAdmin && (
+            <Link href="/admin" className="hover:text-ink">
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">

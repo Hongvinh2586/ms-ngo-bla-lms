@@ -1,12 +1,13 @@
 -- Sample quiz so you have something to test with right after setup.
 -- Run this after schema.sql, in the same SQL Editor.
 
-insert into public.quizzes (slug, title, description, level, time_limit_minutes)
+insert into public.quizzes (slug, title, description, level, category, time_limit_minutes)
 values (
   'vocabulary-builders-unit-1',
   'Vocabulary Builders — Unit 1 Check',
   'A short check on everyday vocabulary: food, routines and simple descriptions.',
   'A2–B1',
+  'vocabulary',
   15
 )
 on conflict (slug) do nothing;
