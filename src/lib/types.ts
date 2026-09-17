@@ -92,10 +92,22 @@ export const FEATURED_COURSES: CourseInfo[] = [
     description: "Practice quizzes for Listening, Reading and Writing task types.",
   },
   {
-    slug: "writing",
-    category: "writing",
-    title: "Writing Courses",
-    description: "Sentence structure, grammar accuracy and paragraph-level writing checks.",
+    slug: "writing-a2",
+    category: "writing-a2",
+    title: "A2 Writing Course",
+    description: "Simple sentences, basic connectors, and short paragraphs for beginner-level writers.",
+  },
+  {
+    slug: "writing-b1",
+    category: "writing-b1",
+    title: "B1 Writing Course",
+    description: "Paragraph structure, linking words, and everyday topics for intermediate writers.",
+  },
+  {
+    slug: "writing-b2",
+    category: "writing-b2",
+    title: "B2 Writing Course",
+    description: "Essay structure, argument development, and more complex grammar for upper-intermediate writers.",
   },
 ];
 
