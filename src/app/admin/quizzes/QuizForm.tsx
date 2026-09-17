@@ -8,7 +8,9 @@ const CATEGORY_OPTIONS = [
   { value: "", label: "— No course —" },
   { value: "vocabulary", label: "Vocabulary Builder" },
   { value: "ielts", label: "IELTS Preparation" },
-  { value: "writing", label: "Writing Courses" },
+  { value: "writing-a2", label: "A2 Writing Course" },
+  { value: "writing-b1", label: "B1 Writing Course" },
+  { value: "writing-b2", label: "B2 Writing Course" },
 ];
 
 const inputClass =
