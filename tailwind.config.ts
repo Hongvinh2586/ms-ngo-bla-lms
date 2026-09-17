@@ -1,7 +1,8 @@
 import type { Config } from "tailwindcss";
 
-// Same warm gold-brown palette used on the public homepage (published as a
-// Claude Artifact), so the student app feels like the same site.
+// Warm cream background with a deep-green accent (forest green header/links,
+// same family as the "Cô Húng Láng" reference site the homepage design is
+// based on) instead of the earlier gold-brown accent.
 const config: Config = {
   content: [
     "./src/app/**/*.{ts,tsx}",
@@ -17,9 +18,9 @@ const config: Config = {
         "ink-soft": "#6B5540",
         "ink-faint": "#9C8767",
         line: "#E0CEA0",
-        accent: "#9C6B22",
-        "accent-strong": "#7A5119",
-        "accent-soft": "#F0DFAE",
+        accent: "#1F6D45",
+        "accent-strong": "#154B2F",
+        "accent-soft": "#DCEEE1",
         warm: "#7A3E1D",
         "warm-soft": "#EAD5AD",
         good: "#2F6B4F",
