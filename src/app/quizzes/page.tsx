@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { FEATURED_COURSES, type QuizRow } from "@/lib/types";
+import { ALL_COURSES, type QuizRow } from "@/lib/types";
 
 export default async function QuizzesPage({
   searchParams,
@@ -30,10 +30,19 @@ export default async function QuizzesPage({
 
   const { data: quizzes, error } = await query.returns<QuizRow[]>();
 
-  const activeCourse = FEATURED_COURSES.find((c) => c.category === activeCategory);
+  const activeCourse = ALL_COURSES.find((c) => c.category === activeCategory);
+  const isWritingSubCourse = activeCategory?.startsWith("writing-") ?? false;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-14">
+      {isWritingSubCourse && (
+        <Link
+          href="/writing"
+          className="mb-3 inline-block text-xs font-semibold text-ink-soft hover:text-ink"
+        >
+          ← Back to Writing Courses
+        </Link>
+      )}
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">Quizzes</p>
       <h1 className="mt-2 font-display text-3xl font-bold text-ink">
         {activeCourse ? activeCourse.title : "Pick a quiz to take"}
@@ -55,7 +64,7 @@ export default async function QuizzesPage({
         >
           All
         </Link>
-        {FEATURED_COURSES.map((course) => (
+        {ALL_COURSES.map((course) => (
           <Link
             key={course.category}
             href={`/quizzes?category=${course.category}`}
