@@ -128,7 +128,7 @@ function MultipleChoiceInput({
           <input
             type="radio"
             name={`q-${question.id}`}
-            className="accent-[#9C6B22]"
+            className="accent-[#1F6D45]"
             checked={selectedIndex === i}
             onChange={() => onChange({ type: "multiple_choice", selectedIndex: i })}
           />
