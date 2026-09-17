@@ -78,6 +78,9 @@ export interface CourseInfo {
   description: string;
 }
 
+/** Top-level courses shown on the homepage and in the header nav. "Writing
+ *  Courses" is a parent here — it has no quizzes of its own; clicking it
+ *  goes to /writing, which lists WRITING_SUB_COURSES below. */
 export const FEATURED_COURSES: CourseInfo[] = [
   {
     slug: "vocabulary",
@@ -91,6 +94,18 @@ export const FEATURED_COURSES: CourseInfo[] = [
     title: "IELTS Preparation",
     description: "Practice quizzes for Listening, Reading and Writing task types.",
   },
+  {
+    slug: "writing",
+    category: "writing",
+    title: "Writing Courses",
+    description: "Choose your level — A2, B1, or B2 — for paragraph and essay writing practice.",
+  },
+];
+
+/** The three writing sub-courses shown on /writing, one level below the
+ *  "Writing Courses" card above. Each has its own quizzes (category
+ *  "writing-a2" | "writing-b1" | "writing-b2"). */
+export const WRITING_SUB_COURSES: CourseInfo[] = [
   {
     slug: "writing-a2",
     category: "writing-a2",
@@ -109,6 +124,16 @@ export const FEATURED_COURSES: CourseInfo[] = [
     title: "B2 Writing Course",
     description: "Essay structure, argument development, and more complex grammar for upper-intermediate writers.",
   },
+];
+
+/** Every real, filterable quiz category (i.e. every category a quiz row can
+ *  actually have) — used to look up a course by its `category` value, e.g.
+ *  for the /quizzes page heading and filter pills. Unlike FEATURED_COURSES,
+ *  this does NOT include the "writing" parent, since no quiz uses that
+ *  category directly. */
+export const ALL_COURSES: CourseInfo[] = [
+  ...FEATURED_COURSES.filter((c) => c.category !== "writing"),
+  ...WRITING_SUB_COURSES,
 ];
 
 /** What the browser sends back on submit, keyed by question id. */
