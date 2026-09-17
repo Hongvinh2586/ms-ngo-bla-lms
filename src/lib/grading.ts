@@ -2,6 +2,7 @@ import type {
   FillBlankData,
   MatchingData,
   MultipleChoiceData,
+  PublicQuestionData,
   QuestionRow,
   StudentAnswer,
   TrueFalseData,
@@ -77,7 +78,7 @@ export function gradeAnswer(question: QuestionRow, answer: StudentAnswer | undef
 
 /** Strips the correct-answer fields from a question's `data`, for sending
  *  to the browser while a student is taking the quiz. */
-export function toSafeQuestionData(question: QuestionRow) {
+export function toSafeQuestionData(question: QuestionRow): PublicQuestionData {
   switch (question.type) {
     case "multiple_choice": {
       const data = question.data as MultipleChoiceData;
