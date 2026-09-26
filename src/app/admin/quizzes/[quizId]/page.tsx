@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { AdminQuizRow, QuestionRow } from "@/lib/types";
 import QuizForm from "../QuizForm";
 import DeleteQuestionButton from "./questions/DeleteQuestionButton";
+import BulkImportForm from "./questions/BulkImportForm";
 
 export default async function EditQuizPage({ params }: { params: { quizId: string } }) {
   const supabase = createClient();
@@ -11,7 +12,7 @@ export default async function EditQuizPage({ params }: { params: { quizId: strin
   const { data: quiz } = await supabase
     .from("quizzes")
     .select(
-      "id, slug, title, description, level, category, time_limit_minutes, is_published, created_at"
+      "id, slug, title, description, level, category, time_limit_minutes, vocabulary, grammar_notes, is_published, created_at"
     )
     .eq("id", params.quizId)
     .single<AdminQuizRow>();
@@ -43,12 +44,18 @@ export default async function EditQuizPage({ params }: { params: { quizId: strin
           <h3 className="font-display text-lg font-bold text-ink">
             Questions ({questions?.length ?? 0})
           </h3>
-          <Link
-            href={`/admin/quizzes/${quiz.id}/questions/new?order=${nextOrderIndex}`}
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-strong transition-colors"
-          >
-            + Add question
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/admin/quizzes/${quiz.id}/questions/new?order=${nextOrderIndex}`}
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-strong transition-colors"
+            >
+              + Add question
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <BulkImportForm quizId={quiz.id} nextOrderIndex={nextOrderIndex} />
         </div>
 
         <div className="mt-4 flex flex-col gap-2">
