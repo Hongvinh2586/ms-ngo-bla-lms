@@ -126,3 +126,136 @@ export async function deleteQuestion(questionId: string, quizId: string) {
 
   revalidatePath(`/admin/quizzes/${quizId}`);
 }
+
+// ---------------------------------------------------------------------------
+// Bulk import — paste a whole ready-made multiple-choice test in one go.
+// ---------------------------------------------------------------------------
+
+type ParsedBulkQuestion = { prompt: string; options: string[]; correctIndex: number };
+
+/**
+ * Parses text pasted into BulkImportForm. Expected shape, one blank line
+ * between questions:
+ *
+ *   1. What is the capital of Vietnam?
+ *   A. Ho Chi Minh City
+ *   B. Hanoi
+ *   C. Da Nang
+ *   D. Hue
+ *   Đáp án: B
+ *
+ * - The leading "1." numbering is optional and stripped from the stored
+ *   question text (the site numbers questions itself).
+ * - The last line names the correct option by letter — "Đáp án: B" (also
+ *   accepts "Dap an", "Answer", "Correct", with or without ":", case- and
+ *   accent-insensitive). It doesn't need to be the last line specifically,
+ *   just present somewhere after the question line.
+ *
+ * Throws a specific, human-readable error naming the offending question
+ * number the moment something doesn't match, so the admin can go fix that
+ * one block and re-paste rather than guessing.
+ */
+function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
+  const blocks = raw
+    .split(/\r?\n\s*\r?\n/)
+    .map((b) => b.trim())
+    .filter((b) => b !== "");
+
+  return blocks.map((block, blockIndex) => {
+    const questionNumber = blockIndex + 1;
+    const lines = block
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l !== "");
+
+    if (lines.length < 3) {
+      throw new Error(
+        `Câu ${questionNumber}: thiếu câu hỏi hoặc đáp án (cần 1 dòng câu hỏi và ít nhất 2 dòng đáp án).`
+      );
+    }
+
+    const questionLine = lines[0];
+    const promptMatch = questionLine.match(/^\d+[.)]\s*(.+)$/);
+    const prompt = (promptMatch ? promptMatch[1] : questionLine).trim();
+
+    if (!prompt) {
+      throw new Error(`Câu ${questionNumber}: thiếu nội dung câu hỏi.`);
+    }
+
+    const optionEntries: { letter: string; text: string }[] = [];
+    let correctLetter: string | null = null;
+
+    for (const rawLine of lines.slice(1)) {
+      const optionMatch = rawLine.match(/^([A-Da-d])[.)]\s*(.+)$/);
+      if (optionMatch) {
+        optionEntries.push({ letter: optionMatch[1].toUpperCase(), text: optionMatch[2].trim() });
+        continue;
+      }
+
+      const answerMatch = rawLine.match(
+        /^(?:đáp\s*án|dap\s*an|answer|correct)\s*[:\-]?\s*([A-Da-d])\b/i
+      );
+      if (answerMatch) {
+        correctLetter = answerMatch[1].toUpperCase();
+        continue;
+      }
+
+      throw new Error(
+        `Câu ${questionNumber}: dòng "${rawLine}" không đúng định dạng — phải là 1 đáp án (A. B. C. D.) hoặc dòng "Đáp án: X".`
+      );
+    }
+
+    if (optionEntries.length < 2) {
+      throw new Error(`Câu ${questionNumber}: cần ít nhất 2 đáp án.`);
+    }
+    if (!correctLetter) {
+      throw new Error(`Câu ${questionNumber}: thiếu dòng "Đáp án: X" để biết đáp án nào đúng.`);
+    }
+
+    const correctIndex = optionEntries.findIndex((o) => o.letter === correctLetter);
+    if (correctIndex === -1) {
+      throw new Error(
+        `Câu ${questionNumber}: "Đáp án: ${correctLetter}" không khớp với đáp án nào đã liệt kê ` +
+          `(chỉ có ${optionEntries.map((o) => o.letter).join(", ")}).`
+      );
+    }
+
+    return { prompt, options: optionEntries.map((o) => o.text), correctIndex };
+  });
+}
+
+/** Bulk-inserts every question parsed out of `rawText` as new multiple_choice
+ *  questions on `quizId`, ordered right after whatever's already there. */
+export async function bulkCreateQuestions(
+  quizId: string,
+  rawText: string,
+  startOrderIndex: number
+) {
+  const parsed = parseBulkMultipleChoice(rawText);
+
+  if (parsed.length === 0) {
+    throw new Error("Không tìm thấy câu hỏi nào trong nội dung bạn đã dán.");
+  }
+
+  const supabase = createClient();
+
+  const rows = parsed.map((q, i) => ({
+    quiz_id: quizId,
+    order_index: startOrderIndex + i,
+    type: "multiple_choice" as const,
+    prompt: q.prompt,
+    explanation: null,
+    points: 1,
+    data: { options: q.options, correctIndex: q.correctIndex },
+  }));
+
+  const { error } = await supabase.from("questions").insert(rows);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath(`/admin/quizzes/${quizId}`);
+
+  return { count: rows.length };
+}
