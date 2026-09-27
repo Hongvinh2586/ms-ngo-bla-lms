@@ -26,7 +26,11 @@ export default function RoleSelect({
 
     startTransition(async () => {
       try {
-        await setUserRole(profileId, newRole);
+        const result = await setUserRole(profileId, newRole);
+        if (!result.ok) {
+          setCurrent(previous);
+          setError(result.error);
+        }
       } catch (err) {
         setCurrent(previous);
         setError(err instanceof Error ? err.message : "Could not update role.");
