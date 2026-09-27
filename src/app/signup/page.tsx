@@ -2,9 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const supabase = createClient();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -18,7 +20,31 @@ export default function SignUpPage() {
     setLoading(true);
     setError(null);
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    // Check the teacher's allowlist first (see is_email_allowed() in
+    // supabase/migration_005_allowed_students.sql) so someone whose email
+    // isn't on the class list gets a clear reason immediately, instead of
+    // whatever generic message Supabase's Auth API would otherwise send back
+    // — a database trigger also blocks account creation itself either way,
+    // this is just what makes the rejection legible to a student.
+    const { data: allowed, error: allowedError } = await supabase.rpc("is_email_allowed", {
+      check_email: email,
+    });
+
+    if (allowedError) {
+      setLoading(false);
+      setError(allowedError.message);
+      return;
+    }
+
+    if (!allowed) {
+      setLoading(false);
+      setError(
+        "Email này chưa có trong danh sách học sinh của lớp. Vui lòng liên hệ giáo viên để được thêm vào danh sách trước khi đăng ký."
+      );
+      return;
+    }
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
@@ -28,6 +54,18 @@ export default function SignUpPage() {
 
     if (signUpError) {
       setError(signUpError.message);
+      return;
+    }
+
+    // When Supabase's "Confirm email" setting is turned off, signUp()
+    // already comes back with a live, signed-in session — there's no email
+    // step at all in that case. Skip the "check your email" screen and take
+    // the student straight to the quizzes instead of making them retype the
+    // password they just chose on the login page. If email confirmation is
+    // still on, there's no session yet, and the message below still applies.
+    if (data.session) {
+      router.push("/quizzes");
+      router.refresh();
       return;
     }
 
