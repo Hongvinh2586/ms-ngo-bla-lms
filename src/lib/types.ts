@@ -59,6 +59,13 @@ export type SafeQuestion = Omit<QuestionRow, "data"> & {
   data: PublicQuestionData;
 };
 
+/** One entry in a quiz's optional "Từ vựng" (vocabulary) tab. */
+export interface VocabularyItem {
+  term: string;
+  meaning: string;
+  example?: string | null;
+}
+
 export interface QuizRow {
   id: string;
   slug: string;
@@ -67,6 +74,13 @@ export interface QuizRow {
   level: string | null;
   category: string | null;
   time_limit_minutes: number | null;
+  /** Optional vocabulary list — shown as a "Từ vựng" tab when present.
+   *  Only selected on pages that need it (the quiz detail page, the admin
+   *  edit form); most QuizRow selects omit these two columns. */
+  vocabulary?: VocabularyItem[] | null;
+  /** Optional list of grammar/structure paragraphs — shown as a "Cấu trúc"
+   *  tab when present. */
+  grammar_notes?: string[] | null;
 }
 
 /** A featured course shown on the homepage — a category of quizzes, not a
@@ -157,13 +171,15 @@ export interface ProfileRow {
   full_name: string | null;
   email: string | null;
   role: UserRole;
-  created_at: string;/** One row of the teacher-maintained allowlist that gates /signup — see
+  created_at: string;
+}
+
+/** One row of the teacher-maintained allowlist that gates /signup — see
  *  supabase/migration_005_allowed_students.sql and AllowedStudentsForm. */
 export interface AllowedStudentRow {
   email: string;
   full_name: string | null;
   created_at: string;
-}
 }
 
 /** Same as QuizRow, plus the fields only the admin screens need. */
@@ -182,6 +198,14 @@ export interface QuizFormInput {
   category: string; // "" | "vocabulary" | "ielts" | "writing" | ...
   timeLimitMinutes: number | null;
   isPublished: boolean;
+  /** Raw textarea contents — one vocabulary entry per line, formatted
+   *  "term | meaning | example" (example optional). Parsed into
+   *  VocabularyItem[] server-side. Blank = no vocabulary tab. */
+  vocabularyText: string;
+  /** Raw textarea contents — one grammar/structure paragraph per blank-line
+   *  separated block. Parsed into string[] server-side. Blank = no
+   *  structure tab. */
+  grammarNotesText: string;
 }
 
 /** What the "create/edit question" admin form collects. Only the fields
