@@ -43,9 +43,13 @@ export default function BulkImportForm({
     startTransition(async () => {
       try {
         const result = await bulkCreateQuestions(quizId, text, nextOrderIndex);
-        setSuccess(`Đã thêm ${result.count} câu hỏi.`);
-        setText("");
-        router.refresh();
+        if (result.ok) {
+          setSuccess(`Đã thêm ${result.count} câu hỏi.`);
+          setText("");
+          router.refresh();
+        } else {
+          setError(result.error);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Không nhập được câu hỏi. Vui lòng thử lại.");
       }
