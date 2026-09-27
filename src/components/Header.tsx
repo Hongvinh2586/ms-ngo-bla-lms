@@ -133,6 +133,12 @@ export default async function Header() {
           {user ? (
             <>
               <span className="hidden text-sm text-ink-soft sm:inline">{displayName}</span>
+              <Link
+                href="/account"
+                className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink hover:border-ink-soft transition-colors"
+              >
+                Đổi mật khẩu
+              </Link>
               <SignOutButton />
             </>
           ) : (
