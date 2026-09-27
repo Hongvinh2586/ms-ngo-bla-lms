@@ -59,10 +59,13 @@ export default function QuestionForm({
 
     startTransition(async () => {
       try {
-        if (question) {
-          await updateQuestion(question.id, quizId, input);
-        } else {
-          await createQuestion(quizId, input);
+        const result = question
+          ? await updateQuestion(question.id, quizId, input)
+          : await createQuestion(quizId, input);
+        // On success the action redirects server-side and this line is never
+        // reached; we only get a value back here when it failed.
+        if (!result.ok) {
+          setError(result.error);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
