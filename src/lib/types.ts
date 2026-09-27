@@ -157,7 +157,13 @@ export interface ProfileRow {
   full_name: string | null;
   email: string | null;
   role: UserRole;
+  created_at: string;/** One row of the teacher-maintained allowlist that gates /signup — see
+ *  supabase/migration_005_allowed_students.sql and AllowedStudentsForm. */
+export interface AllowedStudentRow {
+  email: string;
+  full_name: string | null;
   created_at: string;
+}
 }
 
 /** Same as QuizRow, plus the fields only the admin screens need. */
