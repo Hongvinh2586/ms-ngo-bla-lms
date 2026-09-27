@@ -18,8 +18,12 @@ export default function DeleteQuestionButton({
     setError(null);
     startTransition(async () => {
       try {
-        await deleteQuestion(questionId, quizId);
-        setConfirming(false);
+        const result = await deleteQuestion(questionId, quizId);
+        if (result.ok) {
+          setConfirming(false);
+        } else {
+          setError(result.error);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not delete question.");
       }
