@@ -47,6 +47,11 @@ export default function QuizForm({
       category,
       timeLimitMinutes: timeLimit.trim() ? Number(timeLimit) : null,
       isPublished,
+      // Chưa có giao diện chỉnh "Từ vựng"/"Cấu trúc" ở form này — để trống,
+      // createQuiz/updateQuiz hiện cũng chưa dùng 2 trường này nên không ảnh
+      // hưởng gì đến dữ liệu đã có của quiz.
+      vocabularyText: "",
+      grammarNotesText: "",
     };
 
     startTransition(async () => {
