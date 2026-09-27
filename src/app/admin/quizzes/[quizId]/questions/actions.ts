@@ -30,44 +30,63 @@ function buildQuestionData(input: QuestionFormInput): QuestionData {
   }
 }
 
-function validate(input: QuestionFormInput) {
+/** Server Actions must never `throw` a "normal" error: in a production
+ *  build, Next.js redacts any thrown error's message before it reaches the
+ *  client and replaces it with a generic "An error occurred in the Server
+ *  Components render..." message — so the real reason (a validation message,
+ *  a Postgres error) never shows up in the UI, only in Vercel's server logs.
+ *  To keep the actual message visible to the admin, every action below
+ *  returns a plain result object instead of throwing, and the calling form
+ *  reads `result.error` directly rather than relying on try/catch. */
+export type ActionResult = { ok: true } | { ok: false; error: string };
+
+function validate(input: QuestionFormInput): string | null {
   if (!input.prompt.trim()) {
-    throw new Error("Prompt is required.");
+    return "Prompt is required.";
   }
   if (!(input.points > 0)) {
-    throw new Error("Points must be greater than 0.");
+    return "Points must be greater than 0.";
   }
 
   if (input.type === "multiple_choice") {
     const options = input.options.map((o) => o.trim()).filter((o) => o !== "");
     if (options.length < 2) {
-      throw new Error("Add at least 2 options.");
+      return "Add at least 2 options.";
     }
     if (input.correctIndex < 0 || input.correctIndex >= input.options.length) {
-      throw new Error("Pick which option is correct.");
+      return "Pick which option is correct.";
     }
     if (!input.options[input.correctIndex]?.trim()) {
-      throw new Error("The option marked correct can't be empty.");
+      return "The option marked correct can't be empty.";
     }
   }
 
   if (input.type === "fill_blank" || input.type === "sentence_completion") {
     const answers = input.acceptedAnswers.map((a) => a.trim()).filter((a) => a !== "");
     if (answers.length === 0) {
-      throw new Error("Add at least 1 accepted answer.");
+      return "Add at least 1 accepted answer.";
     }
   }
 
   if (input.type === "matching") {
     const pairs = input.pairs.filter((p) => p.left.trim() !== "" && p.right.trim() !== "");
     if (pairs.length < 2) {
-      throw new Error("Add at least 2 complete matching pairs.");
+      return "Add at least 2 complete matching pairs.";
     }
   }
+
+  return null;
 }
 
-export async function createQuestion(quizId: string, input: QuestionFormInput) {
-  validate(input);
+export async function createQuestion(
+  quizId: string,
+  input: QuestionFormInput
+): Promise<ActionResult> {
+  const validationError = validate(input);
+  if (validationError) {
+    return { ok: false, error: validationError };
+  }
+
   const supabase = createClient();
 
   const { error } = await supabase.from("questions").insert({
@@ -81,7 +100,7 @@ export async function createQuestion(quizId: string, input: QuestionFormInput) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    return { ok: false, error: error.message };
   }
 
   revalidatePath(`/admin/quizzes/${quizId}`);
@@ -92,8 +111,12 @@ export async function updateQuestion(
   questionId: string,
   quizId: string,
   input: QuestionFormInput
-) {
-  validate(input);
+): Promise<ActionResult> {
+  const validationError = validate(input);
+  if (validationError) {
+    return { ok: false, error: validationError };
+  }
+
   const supabase = createClient();
 
   const { error } = await supabase
@@ -109,22 +132,23 @@ export async function updateQuestion(
     .eq("id", questionId);
 
   if (error) {
-    throw new Error(error.message);
+    return { ok: false, error: error.message };
   }
 
   revalidatePath(`/admin/quizzes/${quizId}`);
   redirect(`/admin/quizzes/${quizId}`);
 }
 
-export async function deleteQuestion(questionId: string, quizId: string) {
+export async function deleteQuestion(questionId: string, quizId: string): Promise<ActionResult> {
   const supabase = createClient();
   const { error } = await supabase.from("questions").delete().eq("id", questionId);
 
   if (error) {
-    throw new Error(error.message);
+    return { ok: false, error: error.message };
   }
 
   revalidatePath(`/admin/quizzes/${quizId}`);
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -224,17 +248,33 @@ function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
   });
 }
 
+export type BulkImportResult = { ok: true; count: number } | { ok: false; error: string };
+
 /** Bulk-inserts every question parsed out of `rawText` as new multiple_choice
- *  questions on `quizId`, ordered right after whatever's already there. */
+ *  questions on `quizId`, ordered right after whatever's already there.
+ *
+ *  Note: parseBulkMultipleChoice() throws to name the offending question as
+ *  soon as it hits one, but that throw is caught right here and turned into
+ *  a returned `{ ok: false, error }` — it never crosses back out of this
+ *  Server Action. See the ActionResult comment above for why: a thrown
+ *  error's message gets silently redacted by Next.js in production. */
 export async function bulkCreateQuestions(
   quizId: string,
   rawText: string,
   startOrderIndex: number
-) {
-  const parsed = parseBulkMultipleChoice(rawText);
+): Promise<BulkImportResult> {
+  let parsed: ParsedBulkQuestion[];
+  try {
+    parsed = parseBulkMultipleChoice(rawText);
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Không đọc được nội dung đã dán.",
+    };
+  }
 
   if (parsed.length === 0) {
-    throw new Error("Không tìm thấy câu hỏi nào trong nội dung bạn đã dán.");
+    return { ok: false, error: "Không tìm thấy câu hỏi nào trong nội dung bạn đã dán." };
   }
 
   const supabase = createClient();
@@ -252,10 +292,10 @@ export async function bulkCreateQuestions(
   const { error } = await supabase.from("questions").insert(rows);
 
   if (error) {
-    throw new Error(error.message);
+    return { ok: false, error: error.message };
   }
 
   revalidatePath(`/admin/quizzes/${quizId}`);
 
-  return { count: rows.length };
+  return { ok: true, count: rows.length };
 }
