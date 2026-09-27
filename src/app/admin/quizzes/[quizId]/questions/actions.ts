@@ -158,8 +158,8 @@ export async function deleteQuestion(questionId: string, quizId: string): Promis
 type ParsedBulkQuestion = { prompt: string; options: string[]; correctIndex: number };
 
 /**
- * Parses text pasted into BulkImportForm. Expected shape, one blank line
- * between questions:
+ * Parses text pasted into BulkImportForm. The documented shape is one blank
+ * line between questions:
  *
  *   1. What is the capital of Vietnam?
  *   A. Ho Chi Minh City
@@ -168,29 +168,62 @@ type ParsedBulkQuestion = { prompt: string; options: string[]; correctIndex: num
  *   D. Hue
  *   Đáp án: B
  *
+ * A blank line always starts a new question. As a fallback for text pasted
+ * straight out of Word/Docs — which very often loses the blank line between
+ * questions on paste, even though it looked fine in the original document —
+ * a line starting with a number ("2.", "3)") also starts a new question, but
+ * only once the question collected so far already has a complete answer key.
+ * That guard means a coincidental number inside an option's own text (e.g.
+ * "A. 1990s music") never gets mistaken for the next question.
+ *
  * - The leading "1." numbering is optional and stripped from the stored
  *   question text (the site numbers questions itself).
- * - The last line names the correct option by letter — "Đáp án: B" (also
+ * - The line naming the correct option by letter — "Đáp án: B" (also
  *   accepts "Dap an", "Answer", "Correct", with or without ":", case- and
- *   accent-insensitive). It doesn't need to be the last line specifically,
- *   just present somewhere after the question line.
+ *   accent-insensitive) — doesn't need to be the last line, just present
+ *   somewhere after the question line.
  *
  * Throws a specific, human-readable error naming the offending question
  * number the moment something doesn't match, so the admin can go fix that
  * one block and re-paste rather than guessing.
  */
 function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
-  const blocks = raw
-    .split(/\r?\n\s*\r?\n/)
-    .map((b) => b.trim())
-    .filter((b) => b !== "");
+  const answerLinePattern = /^(?:đáp\s*án|dap\s*an|answer|correct)\s*[:\-]?\s*([A-Da-d])\b/i;
+  const numberedStartPattern = /^\d+[.)]\s*\S/;
 
-  return blocks.map((block, blockIndex) => {
+  const blocks: string[][] = [];
+  let current: string[] = [];
+  let currentHasAnswer = false;
+
+  for (const rawLine of raw.split(/\r?\n/)) {
+    const line = rawLine.trim();
+
+    if (line === "") {
+      if (current.length > 0) {
+        blocks.push(current);
+        current = [];
+        currentHasAnswer = false;
+      }
+      continue;
+    }
+
+    if (currentHasAnswer && current.length > 0 && numberedStartPattern.test(line)) {
+      blocks.push(current);
+      current = [];
+      currentHasAnswer = false;
+    }
+
+    current.push(line);
+    if (answerLinePattern.test(line)) {
+      currentHasAnswer = true;
+    }
+  }
+  if (current.length > 0) {
+    blocks.push(current);
+  }
+
+  return blocks.map((lines, blockIndex) => {
     const questionNumber = blockIndex + 1;
-    const lines = block
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l !== "");
 
     if (lines.length < 3) {
       throw new Error(
@@ -216,9 +249,7 @@ function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
         continue;
       }
 
-      const answerMatch = rawLine.match(
-        /^(?:đáp\s*án|dap\s*an|answer|correct)\s*[:\-]?\s*([A-Da-d])\b/i
-      );
+      const answerMatch = rawLine.match(answerLinePattern);
       if (answerMatch) {
         correctLetter = answerMatch[1].toUpperCase();
         continue;
