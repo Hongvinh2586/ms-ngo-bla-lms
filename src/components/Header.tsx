@@ -62,8 +62,7 @@ export default async function Header() {
           </span>
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-accent-strong">
-          <Link href="/" className="hover:text-accent">
+  <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-lg font-semibold text-accent-strong">
             Trang chủ
           </Link>
           {FEATURED_COURSES.map((course) =>
