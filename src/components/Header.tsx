@@ -24,6 +24,7 @@ export default async function Header() {
   // Quiz counts for the "Writing Courses" hover menu below. Only readable
   // once signed in (quizzes RLS), same as the homepage's course cards.
   const writingCounts = new Map<string, number>();
+  let lessonCount = 0;
   if (user) {
     const { data: writingQuizzes } = await supabase
       .from("quizzes")
@@ -37,6 +38,13 @@ export default async function Header() {
       if (!row.category) continue;
       writingCounts.set(row.category, (writingCounts.get(row.category) ?? 0) + 1);
     }
+
+    const { count } = await supabase
+      .from("quizzes")
+      .select("id", { count: "exact", head: true })
+      .eq("is_lesson", true)
+      .eq("is_published", true);
+    lessonCount = count ?? 0;
   }
 
   return (
@@ -76,9 +84,9 @@ export default async function Header() {
                     <path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
                 </Link>
-                <div className="invisible absolute left-0 top-full z-20 w-[300px] pt-3 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100">
+                <div className="invisible absolute left-0 top-full z-20 w-[320px] pt-3 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100">
                   <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {WRITING_SUB_COURSES.map((sub) => {
                         const count = writingCounts.get(sub.category) ?? 0;
                         return (
@@ -96,6 +104,17 @@ export default async function Header() {
                           </Link>
                         );
                       })}
+                      <Link
+                        href="/lessons"
+                        className="group/tile rounded-xl bg-accent-soft px-2 py-3 text-center transition-colors hover:bg-accent"
+                      >
+                        <div className="text-sm font-bold text-accent-strong group-hover/tile:text-white">
+                          Lessons
+                        </div>
+                        <div className="mt-1 text-[11px] text-ink-faint group-hover/tile:text-white/80">
+                          {lessonCount > 0 ? `${lessonCount} bài` : "Sắp có"}
+                        </div>
+                      </Link>
                     </div>
                     <Link
                       href="/writing"
