@@ -6,9 +6,10 @@ import DeleteQuizButton from "./DeleteQuizButton";
 export default async function AdminQuizzesPage() {
   const supabase = createClient();
 
-  const { data: quizzes, error } = await supabase
+    const { data: quizzes, error } = await supabase
     .from("quizzes")
     .select("id, slug, title, description, level, category, time_limit_minutes, is_published, created_at")
+    .eq("is_lesson", false)
     .order("created_at", { ascending: false })
     .returns<AdminQuizRow[]>();
 
