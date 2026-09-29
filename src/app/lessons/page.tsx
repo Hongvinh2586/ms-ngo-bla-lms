@@ -40,17 +40,17 @@ export default async function LessonsPage() {
         <p className="mt-8 text-ink-soft">Chưa có bài học nào được xuất bản.</p>
       )}
 
-      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {lessons?.map((lesson) => (
           <article
             key={lesson.id}
-            className="flex flex-col gap-3 rounded-xl2 border border-line bg-surface p-7 shadow-card"
+            className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-7 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lg"
           >
             {lesson.level && <span className="level-tag">{lesson.level}</span>}
-            <h2 className="font-display text-xl font-bold text-ink">{lesson.title}</h2>
+            <h2 className="font-display text-2xl font-bold text-ink">{lesson.title}</h2>
             <Link
               href={`/lessons/${lesson.slug}`}
-              className="mt-auto inline-flex w-fit items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm font-semibold text-ink hover:border-ink-soft transition-colors"
+              className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-base font-bold text-white shadow-card transition-colors hover:bg-accent-strong"
             >
               Học bài →
             </Link>
