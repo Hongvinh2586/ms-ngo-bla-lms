@@ -32,6 +32,16 @@ const config: Config = {
         display: ["var(--font-display)", "Georgia", "serif"],
         body: ["var(--font-body)", "-apple-system", "sans-serif"],
       },
+      // Bumped up one notch from Tailwind's defaults so every heading on the
+      // site (all of which use text-lg through text-4xl) reads larger and
+      // more prominent — this affects every page at once, nothing else to edit.
+      fontSize: {
+        lg: ["1.25rem", { lineHeight: "1.85rem" }],
+        xl: ["1.5rem", { lineHeight: "2.1rem" }],
+        "2xl": ["1.875rem", { lineHeight: "2.35rem" }],
+        "3xl": ["2.25rem", { lineHeight: "2.6rem" }],
+        "4xl": ["2.75rem", { lineHeight: "3rem" }],
+      },
       borderRadius: {
         xl2: "18px",
       },
