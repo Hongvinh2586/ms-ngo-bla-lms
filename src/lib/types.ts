@@ -81,6 +81,14 @@ export interface QuizRow {
   /** Optional list of grammar/structure paragraphs — shown as a "Cấu trúc"
    *  tab when present. */
   grammar_notes?: string[] | null;
+  /** true when this row is a "Lesson" (shown at /lessons), not a regular
+   *  quiz (shown at /quizzes). Lessons and quizzes share the same table so
+   *  the question-bank UI can be reused, but every page that lists quizzes
+   *  filters is_lesson=false, and every page that lists lessons filters
+   *  is_lesson=true, so the two never mix. */
+  is_lesson?: boolean;
+  /** Optional manual sort order for lessons (smaller shows first). */
+  order_index?: number | null;
 }
 
 /** A featured course shown on the homepage — a category of quizzes, not a
@@ -205,6 +213,19 @@ export interface QuizFormInput {
   /** Raw textarea contents — one grammar/structure paragraph per blank-line
    *  separated block. Parsed into string[] server-side. Blank = no
    *  structure tab. */
+  grammarNotesText: string;
+}
+
+/** What the "create/edit lesson" admin form collects — a lighter version of
+ *  QuizFormInput without the fields lessons don't use (description,
+ *  category, time limit). See src/app/admin/lessons/actions.ts. */
+export interface LessonFormInput {
+  slug: string;
+  title: string;
+  level: string;
+  orderIndex: number | null;
+  isPublished: boolean;
+  vocabularyText: string;
   grammarNotesText: string;
 }
 
