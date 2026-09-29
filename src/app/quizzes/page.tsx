@@ -19,9 +19,10 @@ export default async function QuizzesPage({
 
   const activeCategory = searchParams.category;
 
-  let query = supabase
+    let query = supabase
     .from("quizzes")
     .select("id, slug, title, description, level, category, time_limit_minutes")
+    .eq("is_lesson", false)
     .order("created_at", { ascending: true });
 
   if (activeCategory) {
