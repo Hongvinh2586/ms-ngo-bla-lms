@@ -24,6 +24,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           >
             Quizzes
           </Link>
+                    <Link
+            href="/admin/lessons"
+            className="rounded-lg border border-line px-3.5 py-2 text-ink-soft hover:border-ink-soft hover:text-ink transition-colors"
+          >
+            Lessons
+          </Link>
           <Link
             href="/admin/results"
             className="rounded-lg border border-line px-3.5 py-2 text-ink-soft hover:border-ink-soft hover:text-ink transition-colors"
