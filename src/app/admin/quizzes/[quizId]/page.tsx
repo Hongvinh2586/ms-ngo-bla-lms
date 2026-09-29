@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminQuizRow, QuestionRow } from "@/lib/types";
 import QuizForm from "../QuizForm";
@@ -12,13 +12,17 @@ export default async function EditQuizPage({ params }: { params: { quizId: strin
   const { data: quiz } = await supabase
     .from("quizzes")
     .select(
-      "id, slug, title, description, level, category, time_limit_minutes, vocabulary, grammar_notes, is_published, created_at"
+      "id, slug, title, description, level, category, time_limit_minutes, vocabulary, grammar_notes, is_lesson, is_published, created_at"
     )
     .eq("id", params.quizId)
     .single<AdminQuizRow>();
 
   if (!quiz) {
     notFound();
+  }
+
+  if (quiz.is_lesson) {
+    redirect(`/admin/lessons/${quiz.id}`);
   }
 
   const { data: questions } = await supabase
