@@ -5,7 +5,16 @@ import { createClient } from "@/lib/supabase/server";
 import { gradeAnswer } from "@/lib/grading";
 import type { QuestionRow, StudentAnswers } from "@/lib/types";
 
-export async function submitQuizAttempt(quizId: string, answers: StudentAnswers) {
+// Lessons keep their "Advanced Practice" questions in the same quiz, numbered from
+// 1000 up. Passing `section` scores only that part; leaving it out scores everything
+// (what every regular quiz does).
+const ADVANCED_FROM = 1000;
+
+export async function submitQuizAttempt(
+  quizId: string,
+  answers: StudentAnswers,
+  section?: "basic" | "advanced"
+) {
   const supabase = createClient();
   const {
     data: { user },
@@ -26,9 +35,17 @@ export async function submitQuizAttempt(quizId: string, answers: StudentAnswers)
     throw new Error(questionsError?.message ?? "This quiz has no questions.");
   }
 
+  const scoredQuestions = questions.filter((q) =>
+    section === "advanced"
+      ? q.order_index >= ADVANCED_FROM
+      : section === "basic"
+        ? q.order_index < ADVANCED_FROM
+        : true
+  );
+
   let score = 0;
   let maxScore = 0;
-  const graded = questions.map((question) => {
+  const graded = scoredQuestions.map((question) => {
     const result = gradeAnswer(question, answers[question.id]);
     score += result.pointsAwarded;
     maxScore += question.points;
