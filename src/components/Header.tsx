@@ -109,7 +109,7 @@ export default async function Header() {
                         className="group/tile rounded-xl bg-accent-soft px-2 py-3 text-center transition-colors hover:bg-accent"
                       >
                         <div className="text-sm font-bold text-accent-strong group-hover/tile:text-white">
-                          Lessons
+                          Lessons for Academic Writing
                         </div>
                         <div className="mt-1 text-[11px] text-ink-faint group-hover/tile:text-white/80">
                           {lessonCount > 0 ? `${lessonCount} bài` : "Sắp có"}
