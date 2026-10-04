@@ -24,9 +24,12 @@ D. gone
 export default function BulkImportForm({
   quizId,
   nextOrderIndex,
+  title = "Dán nhiều câu hỏi cùng lúc",
 }: {
   quizId: string;
   nextOrderIndex: number;
+  /** Button / heading text — lets the same form appear twice (e.g. for Advanced Practice). */
+  title?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -63,7 +66,7 @@ export default function BulkImportForm({
         onClick={() => setOpen(true)}
         className="rounded-lg border border-line px-3.5 py-2 text-xs font-semibold text-ink hover:border-ink-soft transition-colors"
       >
-        Dán nhiều câu hỏi cùng lúc
+        {title}
       </button>
     );
   }
@@ -75,7 +78,7 @@ export default function BulkImportForm({
     >
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-          Dán nhiều câu hỏi cùng lúc
+          {title}
         </p>
         <p className="mt-1 text-xs text-ink-soft">
           Mỗi câu: 1 dòng câu hỏi (đánh số hay không đều được), rồi 4 dòng đáp án bắt đầu bằng A. B.
