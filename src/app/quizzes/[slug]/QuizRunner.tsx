@@ -8,9 +8,11 @@ interface Props {
   quizId: string;
   quizSlug: string;
   questions: SafeQuestion[];
+  /** Lessons only: score just the basic or just the advanced part of the quiz. */
+  section?: "basic" | "advanced";
 }
 
-export default function QuizRunner({ quizId, questions }: Props) {
+export default function QuizRunner({ quizId, questions, section }: Props) {
   const [answers, setAnswers] = useState<StudentAnswers>({});
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -25,7 +27,7 @@ export default function QuizRunner({ quizId, questions }: Props) {
     setError(null);
     startTransition(async () => {
       try {
-        await submitQuizAttempt(quizId, answers);
+        await submitQuizAttempt(quizId, answers, section);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       }
