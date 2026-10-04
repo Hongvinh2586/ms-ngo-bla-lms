@@ -39,7 +39,7 @@ export default async function WritingCoursesPage() {
       <h1 className="mt-2 font-display text-3xl font-bold text-ink">Pick your level</h1>
       <p className="mt-2 max-w-xl text-ink-soft">
         Writing practice is split by level — choose A2, B1, or B2 to see the quizzes for that course,
-        hoặc mở Lessons for Academic Writing để học từ vựng, cấu trúc và luyện tập theo chủ đề.
+        or open Lessons for Academic Writing to study structures and practise by topic.
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -76,7 +76,7 @@ export default async function WritingCoursesPage() {
             {(lessonCount ?? 0) > 0 ? `${lessonCount} lesson${lessonCount! > 1 ? "s" : ""} available` : "Coming soon"}
           </span>
           <h2 className="font-display text-xl font-bold text-ink">Lessons for Academic Writing</h2>
-          <p className="text-sm text-ink-soft">Từ vựng, cấu trúc và luyện tập theo từng chủ đề.</p>
+          <p className="text-sm text-ink-soft">Structures and practice for every topic.</p>
         </Link>
       </div>
     </div>
