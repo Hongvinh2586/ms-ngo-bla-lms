@@ -14,8 +14,8 @@ export default async function AccountPage() {
 
   return (
     <div className="mx-auto max-w-md px-6 py-16">
-      <h1 className="font-display text-3xl font-bold text-ink">Tài khoản của bạn</h1>
-      <p className="mt-2 text-ink-soft">Đổi mật khẩu đăng nhập bất cứ lúc nào bạn muốn.</p>
+      <h1 className="font-display text-3xl font-bold text-ink">Your account</h1>
+      <p className="mt-2 text-ink-soft">Change your password whenever you like.</p>
       <div className="mt-8">
         <ChangePasswordForm email={user.email ?? ""} />
       </div>
