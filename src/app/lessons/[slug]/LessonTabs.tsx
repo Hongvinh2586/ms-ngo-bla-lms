@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import type { SafeQuestion, VocabularyItem } from "@/lib/types";
 import QuizRunner from "@/app/quizzes/[slug]/QuizRunner";
 
-type Tab = "vocabulary" | "grammar" | "practice";
+type Tab = "vocabulary" | "grammar" | "practice" | "advanced";
 type ExampleKind = "good" | "bad" | "neutral";
 
 const STRUCTURE_PATTERN =
@@ -116,7 +116,7 @@ function GrammarCard({ paragraph, index }: { paragraph: string; index: number })
 
         {notes.length > 0 && (
           <div className="rounded-lg border border-warm/20 bg-warm-soft/50 px-4 py-3">
-            <p className="text-sm font-bold uppercase tracking-widest text-warm">Lưu ý</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-warm">Notes</p>
             <ul className="mt-2 flex flex-col gap-1.5">
               {notes.map((note, i) => (
                 <li key={i} className="flex items-start gap-2 text-base leading-relaxed text-ink">
@@ -130,7 +130,7 @@ function GrammarCard({ paragraph, index }: { paragraph: string; index: number })
 
         {examples.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-bold uppercase tracking-widest text-ink-faint">Ví dụ</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-ink-faint">Examples</p>
             {examples.map((example, i) => {
               const style = EXAMPLE_STYLES[example.kind];
               return (
@@ -165,24 +165,35 @@ export default function LessonTabs({
   vocabulary,
   grammarNotes,
   questions,
+  advancedQuestions = [],
 }: {
   quizId: string;
   quizSlug: string;
   vocabulary: VocabularyItem[] | null;
   grammarNotes: string[] | null;
   questions: SafeQuestion[];
+  advancedQuestions?: SafeQuestion[];
 }) {
+  const hasAdvanced = advancedQuestions.length > 0;
+
   const availableTabs: { key: Tab; label: string; count?: number }[] = [
     ...(vocabulary && vocabulary.length > 0
-      ? [{ key: "vocabulary" as Tab, label: "Từ vựng", count: vocabulary.length }]
+      ? [{ key: "vocabulary" as Tab, label: "Vocabulary", count: vocabulary.length }]
       : []),
     ...(grammarNotes && grammarNotes.length > 0
-      ? [{ key: "grammar" as Tab, label: "Cấu trúc", count: grammarNotes.length }]
+      ? [{ key: "grammar" as Tab, label: "Structures", count: grammarNotes.length }]
       : []),
-    { key: "practice" as Tab, label: "Luyện tập", count: questions.length },
+    { key: "practice" as Tab, label: "Practice", count: questions.length },
+    ...(hasAdvanced
+      ? [{ key: "advanced" as Tab, label: "Advanced Practice", count: advancedQuestions.length }]
+      : []),
   ];
 
   const [tab, setTab] = useState<Tab>(availableTabs[0]?.key ?? "practice");
+
+  // Every panel stays mounted (only hidden) so answers typed in a practice tab
+  // are not lost when the student flips to Structures and back.
+  const panel = (key: Tab) => (tab === key ? "" : "hidden");
 
   return (
     <div className="mt-8">
@@ -216,37 +227,66 @@ export default function LessonTabs({
       </div>
 
       <div className="mt-6">
-        {tab === "vocabulary" && (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {(vocabulary ?? []).map((item, i) => (
-              <div
-                key={i}
-                className="rounded-xl2 border border-line border-l-4 border-l-accent bg-surface p-5 shadow-card"
-              >
-                <p className="font-display text-lg font-bold text-ink">{item.term}</p>
-                <p className="mt-1 text-sm text-ink-soft">{item.meaning}</p>
-                {item.example && (
-                  <p className="mt-2 text-xs italic text-ink-faint">&ldquo;{item.example}&rdquo;</p>
-                )}
-              </div>
-            ))}
+        {vocabulary && vocabulary.length > 0 && (
+          <div className={panel("vocabulary")}>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {vocabulary.map((item, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl2 border border-line border-l-4 border-l-accent bg-surface p-5 shadow-card"
+                >
+                  <p className="font-display text-lg font-bold text-ink">{item.term}</p>
+                  <p className="mt-1 text-sm text-ink-soft">{item.meaning}</p>
+                  {item.example && (
+                    <p className="mt-2 text-xs italic text-ink-faint">&ldquo;{item.example}&rdquo;</p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {tab === "grammar" && (
-          <div className="flex flex-col gap-6">
-            {(grammarNotes ?? []).map((paragraph, i) => (
-              <GrammarCard key={i} paragraph={paragraph} index={i} />
-            ))}
+        {grammarNotes && grammarNotes.length > 0 && (
+          <div className={panel("grammar")}>
+            <div className="flex flex-col gap-6">
+              {grammarNotes.map((paragraph, i) => (
+                <GrammarCard key={i} paragraph={paragraph} index={i} />
+              ))}
+            </div>
           </div>
         )}
 
-        {tab === "practice" &&
-          (questions.length === 0 ? (
-            <p className="text-ink-soft">Chưa có câu hỏi luyện tập cho bài học này.</p>
+        <div className={panel("practice")}>
+          {questions.length === 0 ? (
+            <p className="text-ink-soft">No practice questions yet.</p>
           ) : (
-            <QuizRunner quizId={quizId} quizSlug={quizSlug} questions={questions} />
-          ))}
+            <QuizRunner
+              quizId={quizId}
+              quizSlug={quizSlug}
+              questions={questions}
+              section={hasAdvanced ? "basic" : undefined}
+            />
+          )}
+        </div>
+
+        {hasAdvanced && (
+          <div className={panel("advanced")}>
+            <div className="flex flex-wrap items-center gap-3 rounded-xl2 border border-warm/20 bg-warm-soft/50 px-5 py-4">
+              <span className="rounded-full bg-warm px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
+                B2 – B2+
+              </span>
+              <p className="text-sm text-ink-soft">
+                Harder tasks: read for logic and cohesion, not just grammar. Scored separately from Practice.
+              </p>
+            </div>
+            <QuizRunner
+              quizId={quizId}
+              quizSlug={quizSlug}
+              questions={advancedQuestions}
+              section="advanced"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
