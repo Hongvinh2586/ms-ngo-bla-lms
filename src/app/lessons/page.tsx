@@ -25,7 +25,7 @@ export default async function LessonsPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-14">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">Bài học</p>
-      <h1 className="mt-2 font-display text-3xl font-bold text-ink">Các bài học</h1>
+      <h1 className="mt-2 font-display text-3xl font-bold text-ink">Lessons for Academic Writing</h1>
       <p className="mt-2 max-w-xl text-ink-soft">
         Mỗi bài học có phần từ vựng, cấu trúc ngữ pháp, và luyện tập riêng.
       </p>
