@@ -4,6 +4,9 @@ import { toSafeQuestionData } from "@/lib/grading";
 import type { QuestionRow, QuizRow, SafeQuestion } from "@/lib/types";
 import LessonTabs from "./LessonTabs";
 
+// Questions numbered 1000 and up are the lesson's "Advanced Practice" (B2-B2+).
+const ADVANCED_FROM = 1000;
+
 export default async function LessonPage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
   const {
@@ -47,7 +50,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
     <div className="mx-auto max-w-3xl px-6 py-14">
       <div className="rounded-xl2 border border-accent/15 bg-accent-soft px-6 py-6">
         <div className="flex items-center gap-3">
-          <p className="text-xs font-bold uppercase tracking-widest text-accent-strong">Bài học</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-accent-strong">Lesson</p>
           {lesson.level && <span className="level-tag">{lesson.level}</span>}
         </div>
         <h1 className="mt-2 font-display text-3xl font-bold text-ink">{lesson.title}</h1>
@@ -58,7 +61,8 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         quizSlug={lesson.slug}
         vocabulary={lesson.vocabulary ?? null}
         grammarNotes={lesson.grammar_notes ?? null}
-        questions={safeQuestions}
+        questions={safeQuestions.filter((q) => q.order_index < ADVANCED_FROM)}
+        advancedQuestions={safeQuestions.filter((q) => q.order_index >= ADVANCED_FROM)}
       />
     </div>
   );
