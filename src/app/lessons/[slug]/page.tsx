@@ -45,8 +45,13 @@ export default async function LessonPage({ params }: { params: { slug: string } 
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
-      {lesson.level && <span className="level-tag">{lesson.level}</span>}
-      <h1 className="mt-3 font-display text-3xl font-bold text-ink">{lesson.title}</h1>
+      <div className="rounded-xl2 border border-accent/15 bg-accent-soft px-6 py-6">
+        <div className="flex items-center gap-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-accent-strong">Bài học</p>
+          {lesson.level && <span className="level-tag">{lesson.level}</span>}
+        </div>
+        <h1 className="mt-2 font-display text-3xl font-bold text-ink">{lesson.title}</h1>
+      </div>
 
       <LessonTabs
         quizId={lesson.id}
