@@ -24,20 +24,20 @@ export default async function LessonsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-14">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent">Bài học</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-accent">Writing Courses</p>
       <h1 className="mt-2 font-display text-3xl font-bold text-ink">Lessons for Academic Writing</h1>
       <p className="mt-2 max-w-xl text-ink-soft">
-        Mỗi bài học có phần từ vựng, cấu trúc ngữ pháp, và luyện tập riêng.
+        Each lesson has its own structures, practice and advanced practice.
       </p>
 
       {error && (
         <p className="mt-8 rounded-lg border border-bad bg-bad-soft px-4 py-3 text-sm text-bad">
-          Không tải được danh sách bài học: {error.message}
+          Could not load the lessons: {error.message}
         </p>
       )}
 
       {!error && (!lessons || lessons.length === 0) && (
-        <p className="mt-8 text-ink-soft">Chưa có bài học nào được xuất bản.</p>
+        <p className="mt-8 text-ink-soft">No lessons have been published yet.</p>
       )}
 
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
