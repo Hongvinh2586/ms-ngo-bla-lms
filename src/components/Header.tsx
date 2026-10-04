@@ -64,7 +64,7 @@ export default async function Header() {
 
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-lg font-semibold text-accent-strong">
           <Link href="/" className="hover:text-accent">
-            Trang chủ
+            Home
           </Link>
           {FEATURED_COURSES.map((course) =>
             course.category === "writing" ? (
@@ -112,7 +112,7 @@ export default async function Header() {
                           Lessons for Academic Writing
                         </div>
                         <div className="mt-1 text-[11px] text-ink-faint group-hover/tile:text-white/80">
-                          {lessonCount > 0 ? `${lessonCount} bài` : "Sắp có"}
+                          {lessonCount > 0 ? `${lessonCount} lesson${lessonCount > 1 ? "s" : ""}` : "Coming soon"}
                         </div>
                       </Link>
                     </div>
@@ -120,7 +120,7 @@ export default async function Header() {
                       href="/writing"
                       className="mt-3 block rounded-lg bg-accent-soft py-2 text-center text-sm font-semibold text-accent-strong transition-colors hover:bg-accent hover:text-white"
                     >
-                      Xem tất cả
+                      View all
                     </Link>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export default async function Header() {
                 href="/account"
                 className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink hover:border-ink-soft transition-colors"
               >
-                Đổi mật khẩu
+                Change password
               </Link>
               <SignOutButton />
             </>
