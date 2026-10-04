@@ -98,17 +98,17 @@ function GrammarCard({ paragraph, index }: { paragraph: string; index: number })
     <section className="overflow-hidden rounded-xl2 border border-line bg-surface shadow-card">
       {title && (
         <header className="flex items-center gap-3 border-b border-accent/15 bg-accent-soft px-5 py-3">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-base font-bold text-white">
             {index + 1}
           </span>
-          <h3 className="text-sm font-bold uppercase tracking-widest text-accent-strong">{title}</h3>
+          <h3 className="text-base font-bold uppercase tracking-widest text-accent-strong">{title}</h3>
         </header>
       )}
 
       <div className="flex flex-col gap-4 p-5">
         {formula && (
           <div className="rounded-lg border-l-4 border-accent bg-accent-soft/60 px-4 py-3">
-            <p className="font-display text-lg font-bold leading-relaxed text-ink">
+            <p className="font-display text-xl font-bold leading-relaxed text-ink">
               {highlightStructures(formula, "text-accent")}
             </p>
           </div>
@@ -116,10 +116,10 @@ function GrammarCard({ paragraph, index }: { paragraph: string; index: number })
 
         {notes.length > 0 && (
           <div className="rounded-lg border border-warm/20 bg-warm-soft/50 px-4 py-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-warm">Lưu ý</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-warm">Lưu ý</p>
             <ul className="mt-2 flex flex-col gap-1.5">
               {notes.map((note, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm leading-relaxed text-ink">
+                <li key={i} className="flex items-start gap-2 text-base leading-relaxed text-ink">
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-warm" />
                   <span>{emphasizeCaps(note)}</span>
                 </li>
@@ -130,7 +130,7 @@ function GrammarCard({ paragraph, index }: { paragraph: string; index: number })
 
         {examples.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Ví dụ</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-ink-faint">Ví dụ</p>
             {examples.map((example, i) => {
               const style = EXAMPLE_STYLES[example.kind];
               return (
@@ -146,7 +146,7 @@ function GrammarCard({ paragraph, index }: { paragraph: string; index: number })
                   >
                     {example.kind === "good" ? "✓" : example.kind === "bad" ? "✗" : "•"}
                   </span>
-                  <p className={["text-sm leading-relaxed", style.text].join(" ")}>
+                  <p className={["text-base leading-relaxed", style.text].join(" ")}>
                     {highlightStructures(example.text, "font-bold text-accent-strong")}
                   </p>
                 </div>
