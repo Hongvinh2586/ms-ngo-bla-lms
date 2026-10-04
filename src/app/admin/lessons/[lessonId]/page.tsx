@@ -29,7 +29,18 @@ export default async function EditLessonPage({ params }: { params: { lessonId: s
     .order("order_index", { ascending: true })
     .returns<QuestionRow[]>();
 
-  const nextOrderIndex = (questions?.length ?? 0) + 1;
+  // Question numbers 1000 and up are the lesson's "Advanced Practice" (B2-B2+) tab;
+  // everything below 1000 is the normal "Practice" tab.
+  const ADVANCED_FROM = 1000;
+  const allQuestions = questions ?? [];
+  const basicCount = allQuestions.filter((q) => q.order_index < ADVANCED_FROM).length;
+  const advancedCount = allQuestions.length - basicCount;
+  const nextOrderIndex = basicCount + 1;
+  const nextAdvancedIndex =
+    allQuestions.reduce(
+      (max, q) => (q.order_index >= ADVANCED_FROM ? Math.max(max, q.order_index) : max),
+      ADVANCED_FROM
+    ) + 1;
 
   return (
     <div>
@@ -43,7 +54,7 @@ export default async function EditLessonPage({ params }: { params: { lessonId: s
       <div className="mt-12">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-lg font-bold text-ink">
-            Câu hỏi luyện tập ({questions?.length ?? 0})
+            Câu hỏi luyện tập ({basicCount}) · Advanced ({advancedCount})
           </h3>
           <Link
             href={`/admin/quizzes/${lesson.id}/questions/new?order=${nextOrderIndex}`}
@@ -61,6 +72,20 @@ export default async function EditLessonPage({ params }: { params: { lessonId: s
 
         <div className="mt-3">
           <BulkImportForm quizId={lesson.id} nextOrderIndex={nextOrderIndex} />
+        </div>
+
+        <div className="mt-3 flex flex-col gap-3">
+          <BulkImportForm
+            quizId={lesson.id}
+            nextOrderIndex={nextAdvancedIndex}
+            title="Advanced Practice: dán nhiều câu hỏi (B2–B2+)"
+          />
+          <Link
+            href={`/admin/quizzes/${lesson.id}/questions/new?order=${nextAdvancedIndex}`}
+            className="w-fit rounded-lg border border-line px-3.5 py-2 text-xs font-semibold text-ink hover:border-ink-soft transition-colors"
+          >
+            + Thêm 1 câu Advanced Practice
+          </Link>
         </div>
 
         <div className="mt-4 flex flex-col gap-2">
