@@ -52,7 +52,7 @@ export default async function LessonsPage() {
               href={`/lessons/${lesson.slug}`}
               className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-base font-bold text-white shadow-card transition-colors hover:bg-accent-strong"
             >
-              Học bài →
+              Study now →
             </Link>
           </article>
         ))}
