@@ -46,8 +46,22 @@ export default async function TakeQuizPage({ params }: { params: { slug: string 
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
       {quiz.level && <span className="level-tag">{quiz.level}</span>}
-      <h1 className="mt-3 font-display text-3xl font-bold text-ink">{quiz.title}</h1>
-      {quiz.description && <p className="mt-2 text-ink-soft">{quiz.description}</p>}
+      <h1 className="mt-3 font-display text-3xl font-extrabold text-ink sm:text-4xl">{quiz.title}</h1>
+      {quiz.description && (
+        <p className="mt-2 text-lg font-semibold text-ink-soft">
+          {quiz.description.split("[[PASSAGE]]")[0].trim()}
+        </p>
+      )}
+      {quiz.description?.includes("[[PASSAGE]]") && (
+        <div className="mt-6 rounded-xl2 border-[3px] border-ink bg-tint-butter p-6 shadow-[0_6px_0_#2B3010]">
+          <p className="text-sm font-extrabold uppercase tracking-widest text-ink">
+            Read the passage first
+          </p>
+          <div className="mt-3 whitespace-pre-line text-base font-semibold leading-relaxed text-ink">
+            {quiz.description.split("[[PASSAGE]]")[1].trim()}
+          </div>
+        </div>
+      )}
 
       {safeQuestions.length === 0 ? (
         <p className="mt-8 text-ink-soft">This quiz has no questions yet.</p>
