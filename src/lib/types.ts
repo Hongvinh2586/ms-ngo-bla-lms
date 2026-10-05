@@ -156,7 +156,7 @@ export const VOCAB_FOLDERS: CourseInfo[] = [
   {
     slug: "timed-reading-4",
     category: "vocabulary-timed-reading-4",
-    title: "Time Reading for Fluency 4",
+    title: "Timed Reading for Fluency 4",
     description: "Eight vocabulary lessons (B1–B2) built from the reading topics, with flashcards, structures and mixed practice.",
   },
 ];
