@@ -51,7 +51,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
       <div className="rounded-xl2 border border-accent/15 bg-accent-soft px-6 py-6">
         <div className="flex items-center gap-3">
           <p className="text-xs font-bold uppercase tracking-widest text-accent-strong">
-            {lesson.category === "vocabulary" ? "Vocabulary" : "Lesson"}
+            {lesson.category?.startsWith("vocabulary") ? "Vocabulary" : "Lesson"}
           </p>
           {lesson.level && <span className="level-tag">{lesson.level}</span>}
         </div>
