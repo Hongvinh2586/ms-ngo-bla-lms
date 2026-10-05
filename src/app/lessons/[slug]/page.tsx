@@ -19,7 +19,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
 
   const { data: lesson } = await supabase
     .from("quizzes")
-    .select("id, slug, title, level, vocabulary, grammar_notes")
+    .select("id, slug, title, level, category, vocabulary, grammar_notes")
     .eq("slug", params.slug)
     .eq("is_lesson", true)
     .single<QuizRow>();
@@ -50,7 +50,9 @@ export default async function LessonPage({ params }: { params: { slug: string } 
     <div className="mx-auto max-w-3xl px-6 py-14">
       <div className="rounded-xl2 border border-accent/15 bg-accent-soft px-6 py-6">
         <div className="flex items-center gap-3">
-          <p className="text-xs font-bold uppercase tracking-widest text-accent-strong">Lesson</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-accent-strong">
+            {lesson.category === "vocabulary" ? "Vocabulary" : "Lesson"}
+          </p>
           {lesson.level && <span className="level-tag">{lesson.level}</span>}
         </div>
         <h1 className="mt-2 font-display text-3xl font-bold text-ink">{lesson.title}</h1>
