@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { QuizRow } from "@/lib/types";
+import { FunCard } from "@/components/FunCard";
 
 export default async function LessonsPage() {
   const supabase = createClient();
@@ -26,8 +27,8 @@ export default async function LessonsPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-14">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">Writing Courses</p>
-      <h1 className="mt-2 font-display text-3xl font-bold text-ink">Lessons for Academic Writing</h1>
-      <p className="mt-2 max-w-xl text-ink-soft">
+      <h1 className="mt-2 font-display text-3xl font-extrabold text-ink sm:text-4xl">Lessons for Academic Writing</h1>
+      <p className="mt-2 max-w-xl text-lg font-semibold text-ink-soft">
         Each lesson has its own structures, practice and advanced practice.
       </p>
 
@@ -41,21 +42,16 @@ export default async function LessonsPage() {
         <p className="mt-8 text-ink-soft">No lessons have been published yet.</p>
       )}
 
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {lessons?.map((lesson) => (
-          <article
+      <div className="mt-10 grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
+        {lessons?.map((lesson, index) => (
+          <FunCard
             key={lesson.id}
-            className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-7 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lg"
-          >
-            {lesson.level && <span className="level-tag">{lesson.level}</span>}
-            <h2 className="font-display text-2xl font-bold text-ink">{lesson.title}</h2>
-            <Link
-              href={`/lessons/${lesson.slug}`}
-              className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-base font-bold text-white shadow-card transition-colors hover:bg-accent-strong"
-            >
-              Study now →
-            </Link>
-          </article>
+            index={index}
+            title={lesson.title}
+            level={lesson.level}
+            href={"/lessons/" + lesson.slug}
+            cta="Study now →"
+          />
         ))}
       </div>
     </div>
