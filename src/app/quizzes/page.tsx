@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ALL_COURSES, VOCAB_FOLDERS, type QuizRow } from "@/lib/types";
+import { FunCard, FunLink } from "@/components/FunCard";
 
 export default async function QuizzesPage({
   searchParams,
@@ -94,10 +95,10 @@ export default async function QuizzesPage({
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">
         {activeFolder ? "Vocabulary Builder" : "Quizzes"}
       </p>
-      <h1 className="mt-2 font-display text-3xl font-bold text-ink">
+      <h1 className="mt-2 font-display text-3xl font-extrabold text-ink sm:text-4xl">
         {activeCourse ? activeCourse.title : "Pick a quiz to take"}
       </h1>
-      <p className="mt-2 max-w-xl text-ink-soft">
+      <p className="mt-2 max-w-xl text-lg font-semibold text-ink-soft">
         {activeCourse
           ? activeCourse.description
           : "Each quiz is graded instantly. You can see every explanation right after you submit, and every attempt is saved to your results history."}
@@ -106,10 +107,10 @@ export default async function QuizzesPage({
       <div className="mt-6 flex flex-wrap gap-2">
         <Link
           href="/quizzes"
-          className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+          className={`rounded-full border-2 px-4 py-2 text-sm font-bold transition-colors ${
             !activeCategory
               ? "border-accent bg-accent text-white"
-              : "border-line text-ink-soft hover:border-ink-soft"
+              : "border-line bg-surface text-ink hover:border-ink-soft"
           }`}
         >
           All
@@ -118,10 +119,10 @@ export default async function QuizzesPage({
           <Link
             key={course.category}
             href={`/quizzes?category=${course.category}`}
-            className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+            className={`rounded-full border-2 px-4 py-2 text-sm font-bold transition-colors ${
               activeCategory === course.category
                 ? "border-accent bg-accent text-white"
-                : "border-line text-ink-soft hover:border-ink-soft"
+                : "border-line bg-surface text-ink hover:border-ink-soft"
             }`}
           >
             {course.title}
@@ -133,24 +134,19 @@ export default async function QuizzesPage({
         <div className="mt-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Books</p>
           <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {VOCAB_FOLDERS.map((folder) => {
+            {VOCAB_FOLDERS.map((folder, folderIndex) => {
               const count = folderCounts.get(folder.category) ?? 0;
               return (
-                <Link
+                <FunLink
                   key={folder.category}
-                  href={`/quizzes?category=${folder.category}`}
-                  className="flex flex-col gap-3 rounded-xl2 border border-line bg-surface p-7 shadow-card transition-colors hover:border-ink-soft"
-                >
-                  <span
-                    className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                      count > 0 ? "bg-accent-soft text-accent-strong" : "bg-paper-alt text-ink-faint"
-                    }`}
-                  >
-                    {count > 0 ? `${count} lesson${count > 1 ? "s" : ""}` : "Coming soon"}
-                  </span>
-                  <h2 className="font-display text-xl font-bold text-ink">{folder.title}</h2>
-                  <p className="text-sm text-ink-soft">{folder.description}</p>
-                </Link>
+                  index={folderIndex}
+                  href={"/quizzes?category=" + folder.category}
+                  title={folder.title}
+                  description={folder.description}
+                  badge={count > 0 ? count + (count > 1 ? " lessons" : " lesson") : "Coming soon"}
+                  highlight={count > 0}
+                  cta="Open"
+                />
               );
             })}
           </div>
@@ -177,25 +173,18 @@ export default async function QuizzesPage({
         </p>
       )}
 
-      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {items.map((quiz) => (
-          <article
+      <div className="mt-10 grid grid-cols-1 gap-7 sm:grid-cols-2">
+        {items.map((quiz, index) => (
+          <FunCard
             key={quiz.id}
-            className="flex flex-col gap-3 rounded-xl2 border border-line bg-surface p-7 shadow-card"
-          >
-            {quiz.level && <span className="level-tag">{quiz.level}</span>}
-            <h2 className="font-display text-xl font-bold text-ink">{quiz.title}</h2>
-            {quiz.description && <p className="text-sm text-ink-soft">{quiz.description}</p>}
-            {quiz.time_limit_minutes && (
-              <p className="text-xs text-ink-faint">Suggested time: {quiz.time_limit_minutes} min</p>
-            )}
-            <Link
-              href={quiz.isLesson ? `/lessons/${quiz.slug}` : `/quizzes/${quiz.slug}`}
-              className="mt-auto inline-flex w-fit items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm font-semibold text-ink hover:border-ink-soft transition-colors"
-            >
-              {quiz.isLesson ? "Study now →" : "Start quiz"}
-            </Link>
-          </article>
+            index={index}
+            title={quiz.title}
+            description={quiz.description}
+            level={quiz.level}
+            meta={quiz.time_limit_minutes ? "Suggested time: " + quiz.time_limit_minutes + " min" : null}
+            href={quiz.isLesson ? "/lessons/" + quiz.slug : "/quizzes/" + quiz.slug}
+            cta={quiz.isLesson ? "Study now →" : "Start quiz"}
+          />
         ))}
       </div>
     </div>
