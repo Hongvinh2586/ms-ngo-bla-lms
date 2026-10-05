@@ -126,7 +126,7 @@ export const FEATURED_COURSES: CourseInfo[] = [
 
 /** The three writing sub-courses shown on /writing, one level below the
  *  "Writing Courses" card above. Each has its own quizzes (category
- *  "writing-a2" | "writing-b1" | "writing-b2"). */
+ *  "writing-a2" | "writing-b1" | "writing-b2" | "writing-b1-b2"). */
 export const WRITING_SUB_COURSES: CourseInfo[] = [
   {
     slug: "writing-a2",
@@ -145,6 +145,12 @@ export const WRITING_SUB_COURSES: CourseInfo[] = [
     category: "writing-b2",
     title: "B2 Writing Course",
     description: "Essay structure, argument development, and more complex grammar for upper-intermediate writers.",
+  },
+  {
+    slug: "writing-b1-b2",
+    category: "writing-b1-b2",
+    title: "B1-B2 Class",
+    description: "Writing practice and quizzes for the mixed B1–B2 class.",
   },
 ];
 
