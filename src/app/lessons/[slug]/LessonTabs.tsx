@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import type { SafeQuestion, VocabularyItem } from "@/lib/types";
 import QuizRunner from "@/app/quizzes/[slug]/QuizRunner";
 
-type Tab = "vocabulary" | "grammar" | "practice" | "advanced";
+type Tab = "vocabulary" | "flashcards" | "grammar" | "practice" | "advanced";
 type ExampleKind = "good" | "bad" | "neutral";
 
 const STRUCTURE_PATTERN =
@@ -159,6 +159,145 @@ function GrammarCard({ paragraph, index }: { paragraph: string; index: number })
   );
 }
 
+function shuffled<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Flip-card study mode for a lesson vocabulary list: tap the card to see
+ *  the meaning, then mark it as known or still learning. Missed cards can
+ *  be reviewed again at the end. */
+function Flashcards({ items }: { items: VocabularyItem[] }) {
+  const [deck, setDeck] = useState<VocabularyItem[]>(items);
+  const [pos, setPos] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [known, setKnown] = useState(0);
+  const [missed, setMissed] = useState<VocabularyItem[]>([]);
+
+  const card = deck[pos];
+
+  function startDeck(next: VocabularyItem[]) {
+    setDeck(next);
+    setPos(0);
+    setFlipped(false);
+    setKnown(0);
+    setMissed([]);
+  }
+
+  function mark(wasKnown: boolean) {
+    if (wasKnown) setKnown((k) => k + 1);
+    else setMissed((m) => [...m, card]);
+    setFlipped(false);
+    setPos((p) => p + 1);
+  }
+
+  const btn =
+    "rounded-full border border-line px-5 py-2.5 text-sm font-semibold text-ink-soft transition-colors hover:border-ink-soft hover:text-ink";
+
+  if (!card) {
+    return (
+      <div className="mx-auto max-w-xl rounded-xl2 border border-line bg-surface p-8 text-center shadow-card">
+        <p className="font-display text-2xl font-bold text-ink">Deck complete</p>
+        <p className="mt-2 text-ink-soft">
+          You knew {known} of {deck.length} cards.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          {missed.length > 0 && (
+            <button
+              type="button"
+              onClick={() => startDeck(shuffled(missed))}
+              className="rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-strong"
+            >
+              Review {missed.length} missed
+            </button>
+          )}
+          <button type="button" onClick={() => startDeck(shuffled(items))} className={btn}>
+            Start again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-xl">
+      <div className="mb-2 flex items-center justify-between text-sm text-ink-soft">
+        <span>
+          Card {pos + 1} of {deck.length}
+        </span>
+        <span>Known: {known}</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-accent-soft">
+        <div className="h-full bg-accent transition-all" style={{ width: `${(pos / deck.length) * 100}%` }} />
+      </div>
+
+      <div
+        key={pos}
+        role="button"
+        tabIndex={0}
+        onClick={() => setFlipped((f) => !f)}
+        onKeyDown={(e) => {
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            setFlipped((f) => !f);
+          }
+        }}
+        className="mt-4 flex min-h-[260px] cursor-pointer select-none flex-col items-center justify-center rounded-xl2 border border-line border-l-4 border-l-accent bg-surface p-8 text-center shadow-card"
+      >
+        {!flipped ? (
+          <>
+            <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Word</p>
+            <p className="mt-3 font-display text-4xl font-bold text-ink">{card.term}</p>
+            <p className="mt-6 text-sm text-ink-faint">Tap the card to see the meaning</p>
+          </>
+        ) : (
+          <>
+            <p className="text-xs font-bold uppercase tracking-widest text-accent">Meaning</p>
+            <p className="mt-3 text-xl text-ink">{card.meaning}</p>
+            {card.example && <p className="mt-4 text-base italic text-ink-soft">&ldquo;{card.example}&rdquo;</p>}
+          </>
+        )}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+        {!flipped ? (
+          <button
+            type="button"
+            onClick={() => setFlipped(true)}
+            className="rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-accent-strong"
+          >
+            Show meaning
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => mark(false)}
+              className="rounded-full border border-bad bg-bad-soft px-6 py-2.5 text-sm font-bold text-bad transition-opacity hover:opacity-80"
+            >
+              Still learning
+            </button>
+            <button
+              type="button"
+              onClick={() => mark(true)}
+              className="rounded-full bg-good px-6 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+            >
+              I know it
+            </button>
+          </>
+        )}
+        <button type="button" onClick={() => startDeck(shuffled(items))} className={btn}>
+          Shuffle
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LessonTabs({
   quizId,
   quizSlug,
@@ -179,6 +318,9 @@ export default function LessonTabs({
   const availableTabs: { key: Tab; label: string; count?: number }[] = [
     ...(vocabulary && vocabulary.length > 0
       ? [{ key: "vocabulary" as Tab, label: "Vocabulary", count: vocabulary.length }]
+      : []),
+    ...(vocabulary && vocabulary.length > 0
+      ? [{ key: "flashcards" as Tab, label: "Flashcards", count: vocabulary.length }]
       : []),
     ...(grammarNotes && grammarNotes.length > 0
       ? [{ key: "grammar" as Tab, label: "Structures", count: grammarNotes.length }]
@@ -243,6 +385,12 @@ export default function LessonTabs({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {vocabulary && vocabulary.length > 0 && (
+          <div className={panel("flashcards")}>
+            <Flashcards items={vocabulary} />
           </div>
         )}
 
