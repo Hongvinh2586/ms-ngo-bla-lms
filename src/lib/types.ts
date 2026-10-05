@@ -221,6 +221,8 @@ export interface QuizFormInput {
  *  category, time limit). See src/app/admin/lessons/actions.ts. */
 export interface LessonFormInput {
   slug: string;
+  /** "" or missing = Writing lessons; "vocabulary" = Vocabulary Builder. */
+  category?: string;
   title: string;
   level: string;
   orderIndex: number | null;
