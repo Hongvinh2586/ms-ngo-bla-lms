@@ -103,7 +103,11 @@ export function FunCard({
         {level && <span className="level-tag">{level}</span>}
       </div>
       <h2 className="font-display text-2xl font-extrabold leading-tight text-ink">{title}</h2>
-      {description && <p className="text-base font-semibold text-ink-soft">{description}</p>}
+      {description && (
+        <p className="text-base font-semibold text-ink-soft">
+          {description.split("[[PASSAGE]]")[0].trim()}
+        </p>
+      )}
       {meta && <p className="text-sm font-bold text-ink-soft">{meta}</p>}
       <Link
         href={href}
