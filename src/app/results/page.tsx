@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ScoreRing } from "@/components/FunCard";
 
 interface AttemptListRow {
   id: string;
@@ -31,7 +32,7 @@ export default async function ResultsPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">My results</p>
-      <h1 className="mt-2 font-display text-3xl font-bold text-ink">Your quiz history</h1>
+      <h1 className="mt-2 font-display text-3xl font-extrabold text-ink sm:text-4xl">Your quiz history</h1>
 
       {(!attempts || attempts.length === 0) && (
         <p className="mt-8 text-ink-soft">
@@ -48,7 +49,7 @@ export default async function ResultsPage() {
           <Link
             key={attempt.id}
             href={`/results/${attempt.id}`}
-            className="flex items-center justify-between gap-4 rounded-xl2 border border-line bg-surface px-6 py-5 shadow-card hover:border-ink-soft transition-colors"
+            className="flex items-center justify-between gap-4 rounded-xl2 border-[3px] border-ink bg-surface px-6 py-5 shadow-[0_5px_0_#2B3010] transition-transform hover:-translate-y-0.5"
           >
             <div>
               <p className="font-display text-lg font-semibold text-ink">
@@ -58,11 +59,14 @@ export default async function ResultsPage() {
                 {new Date(attempt.submitted_at).toLocaleString()}
               </p>
             </div>
-            <div className="text-right">
-              <p className="font-display text-xl font-bold text-ink">
-                {attempt.score}/{attempt.max_score}
-              </p>
-              <p className="text-xs text-ink-faint">{attempt.percentage}%</p>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="font-display text-xl font-extrabold text-ink">
+                  {attempt.score}/{attempt.max_score}
+                </p>
+                <p className="text-xs font-bold text-ink-faint">{attempt.percentage}%</p>
+              </div>
+              <ScoreRing percentage={attempt.percentage} size={52} />
             </div>
           </Link>
         ))}
