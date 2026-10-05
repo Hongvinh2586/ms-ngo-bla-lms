@@ -31,6 +31,24 @@ export default async function QuizzesPage({
 
   const { data: quizzes, error } = await query.returns<QuizRow[]>();
 
+  // Vocabulary Builder shows its study lessons alongside its quizzes.
+  let lessonItems: QuizRow[] = [];
+  if (!activeCategory || activeCategory === "vocabulary") {
+    const { data: vocabLessons } = await supabase
+      .from("quizzes")
+      .select("id, slug, title, description, level, category, time_limit_minutes")
+      .eq("is_lesson", true)
+      .eq("is_published", true)
+      .eq("category", "vocabulary")
+      .order("order_index", { ascending: true })
+      .returns<QuizRow[]>();
+    lessonItems = vocabLessons ?? [];
+  }
+  const items = [
+    ...lessonItems.map((q) => ({ ...q, isLesson: true })),
+    ...(quizzes ?? []).map((q) => ({ ...q, isLesson: false })),
+  ];
+
   const activeCourse = ALL_COURSES.find((c) => c.category === activeCategory);
   const isWritingSubCourse = activeCategory?.startsWith("writing-") ?? false;
 
@@ -86,7 +104,7 @@ export default async function QuizzesPage({
         </p>
       )}
 
-      {!error && (!quizzes || quizzes.length === 0) && (
+      {!error && items.length === 0 && (
         <p className="mt-8 text-ink-soft">
           {activeCourse
             ? `No quizzes published in ${activeCourse.title} yet — check back soon.`
@@ -101,7 +119,7 @@ export default async function QuizzesPage({
       )}
 
       <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {quizzes?.map((quiz) => (
+        {items.map((quiz) => (
           <article
             key={quiz.id}
             className="flex flex-col gap-3 rounded-xl2 border border-line bg-surface p-7 shadow-card"
@@ -113,10 +131,10 @@ export default async function QuizzesPage({
               <p className="text-xs text-ink-faint">Suggested time: {quiz.time_limit_minutes} min</p>
             )}
             <Link
-              href={`/quizzes/${quiz.slug}`}
+              href={quiz.isLesson ? `/lessons/${quiz.slug}` : `/quizzes/${quiz.slug}`}
               className="mt-auto inline-flex w-fit items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm font-semibold text-ink hover:border-ink-soft transition-colors"
             >
-              Start quiz
+              {quiz.isLesson ? "Study now →" : "Start quiz"}
             </Link>
           </article>
         ))}
