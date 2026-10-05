@@ -31,7 +31,8 @@ export default async function WritingCoursesPage() {
     .from("quizzes")
     .select("id", { count: "exact", head: true })
     .eq("is_lesson", true)
-    .eq("is_published", true);
+    .eq("is_published", true)
+    .or("category.is.null,category.neq.vocabulary");
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-14">
