@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ScoreRing, Stars, praiseFor } from "@/components/FunCard";
 import type {
   FillBlankData,
   MatchingData,
@@ -125,19 +126,37 @@ export default async function AttemptResultPage({
         {attempt.quizzes?.title ?? "Quiz result"}
       </p>
 
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-4 rounded-xl2 border border-line bg-surface p-7 shadow-card">
-        <div>
-          <p className="font-display text-4xl font-bold text-ink">
-            {attempt.score}/{attempt.max_score}
-          </p>
-          <p className="mt-1 text-ink-soft">{attempt.percentage}% correct</p>
+      <div className="mt-3 flex flex-col items-center gap-5 rounded-xl2 border-[3px] border-ink bg-tint-butter p-8 text-center shadow-[0_8px_0_#2B3010]">
+        <Stars count={praiseFor(attempt.percentage).stars} />
+        <p className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
+          {praiseFor(attempt.percentage).title}
+        </p>
+        <div className="relative h-[170px] w-[170px]">
+          <ScoreRing percentage={attempt.percentage} size={170} />
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <p className="font-display text-4xl font-extrabold leading-none text-ink">
+              {attempt.score}/{attempt.max_score}
+            </p>
+            <p className="mt-1 text-base font-extrabold text-ink-soft">{attempt.percentage}%</p>
+          </div>
         </div>
-        <Link
-          href={`/quizzes/${attempt.quizzes?.slug ?? ""}`}
-          className="rounded-lg border border-line px-4 py-2 text-sm font-semibold text-ink hover:border-ink-soft transition-colors"
-        >
-          Retake this quiz
-        </Link>
+        <p className="max-w-sm text-lg font-bold text-ink-soft">
+          {praiseFor(attempt.percentage).message}
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link
+            href={"/quizzes/" + (attempt.quizzes?.slug ?? "")}
+            className="rounded-full bg-accent px-6 py-3 text-base font-extrabold text-white shadow-[0_5px_0_#3E4A12] transition-transform hover:-translate-y-0.5"
+          >
+            Retake this quiz
+          </Link>
+          <Link
+            href="/results"
+            className="rounded-full border-[3px] border-line bg-surface px-6 py-2.5 text-base font-extrabold text-ink transition-transform hover:-translate-y-0.5"
+          >
+            My results
+          </Link>
+        </div>
       </div>
 
       <div className="mt-8 flex flex-col gap-5">
@@ -146,7 +165,7 @@ export default async function AttemptResultPage({
           return (
             <div
               key={answer.id}
-              className={`rounded-xl2 border p-6 ${
+              className={`rounded-xl2 border-2 p-6 ${
                 answer.is_correct ? "border-good/40 bg-good-soft/40" : "border-bad/40 bg-bad-soft/40"
               }`}
             >
