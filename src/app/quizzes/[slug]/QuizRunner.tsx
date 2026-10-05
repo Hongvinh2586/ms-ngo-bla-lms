@@ -52,17 +52,25 @@ export default function QuizRunner({ quizId, questions, section }: Props) {
         </p>
       )}
 
-      <div className="flex items-center justify-between rounded-xl2 border border-line bg-paper-alt px-6 py-5">
-        <span className="text-sm text-ink-soft">
+      <div className="sticky bottom-3 z-10 flex flex-col gap-3 rounded-xl2 border-[3px] border-ink bg-tint-butter px-6 py-4 shadow-[0_5px_0_#2B3010]">
+        <div className="h-3 overflow-hidden rounded-full bg-white/70">
+          <div
+            className="h-full rounded-full bg-accent transition-all"
+            style={{
+              width: (questions.length ? (answeredCount / questions.length) * 100 : 0) + "%",
+            }}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+        <span className="text-base font-extrabold text-ink">
           {answeredCount} of {questions.length} answered
         </span>
         <button
           onClick={handleSubmit}
           disabled={isPending}
-          className="rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white hover:bg-accent-strong disabled:opacity-60 transition-colors"
+          className="rounded-full bg-accent px-7 py-3 text-base font-extrabold text-white shadow-[0_4px_0_#3E4A12] hover:bg-accent-strong disabled:opacity-60 transition-colors"
         >
-          {isPending ? "Submitting…" : "Submit quiz"}
-        </button>
+          $1</div>
       </div>
     </div>
   );
@@ -80,11 +88,11 @@ function QuestionCard({
   onChange: (answer: StudentAnswer) => void;
 }) {
   return (
-    <div className="rounded-xl2 border border-line bg-surface p-7 shadow-card">
-      <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">
+    <div className="rounded-xl2 border-[3px] border-ink bg-surface p-7 shadow-[0_6px_0_#2B3010]">
+      <p className="inline-block rounded-full bg-tint-butter px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-ink">
         Question {index + 1}
       </p>
-      <p className="mt-2 font-display text-lg font-semibold text-ink">{question.prompt}</p>
+      <p className="mt-3 font-display text-xl font-bold text-ink">{question.prompt}</p>
 
       <div className="mt-4">
         {question.type === "multiple_choice" && (
@@ -121,16 +129,16 @@ function MultipleChoiceInput({
       {options.map((option, i) => (
         <label
           key={i}
-          className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors ${
+          className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base font-semibold transition-colors ${
             selectedIndex === i
               ? "border-accent bg-accent-soft text-ink"
-              : "border-line text-ink-soft hover:border-ink-soft"
+              : "border-line bg-white text-ink hover:border-accent"
           }`}
         >
           <input
             type="radio"
             name={`q-${question.id}`}
-            className="accent-[#1F6D45]"
+            className="accent-[#5B6B1F]"
             checked={selectedIndex === i}
             onChange={() => onChange({ type: "multiple_choice", selectedIndex: i })}
           />
@@ -157,10 +165,10 @@ function TrueFalseInput({
           key={String(option)}
           type="button"
           onClick={() => onChange({ type: "true_false", value: option })}
-          className={`rounded-lg border px-6 py-2.5 text-sm font-semibold transition-colors ${
+          className={`rounded-full border-2 px-7 py-2.5 text-base font-extrabold transition-colors ${
             value === option
               ? "border-accent bg-accent-soft text-ink"
-              : "border-line text-ink-soft hover:border-ink-soft"
+              : "border-line bg-white text-ink hover:border-accent"
           }`}
         >
           {option ? "True" : "False"}
@@ -188,7 +196,7 @@ function TextInput({
       value={text}
       onChange={(e) => onChange({ type: questionType, text: e.target.value })}
       placeholder="Type your answer…"
-      className="w-full rounded-lg border border-line bg-paper px-3.5 py-2.5 text-sm text-ink outline-none focus:border-accent"
+      className="w-full rounded-2xl border-2 border-line bg-white px-4 py-3 text-base text-ink outline-none focus:border-accent"
     />
   );
 }
@@ -219,7 +227,7 @@ function MatchingInput({
           <select
             value={matches[left] ?? ""}
             onChange={(e) => setMatch(left, e.target.value)}
-            className="w-full rounded-lg border border-line bg-paper px-3.5 py-2.5 text-sm text-ink outline-none focus:border-accent"
+            className="w-full rounded-2xl border-2 border-line bg-white px-4 py-3 text-base text-ink outline-none focus:border-accent"
           >
             <option value="" disabled>
               Choose a match…
