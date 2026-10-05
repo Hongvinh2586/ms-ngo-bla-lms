@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { QuestionData, QuestionFormInput } from "@/lib/types";
+import type { QuestionData, QuestionFormInput, QuestionType } from "@/lib/types";
 
 function buildQuestionData(input: QuestionFormInput): QuestionData {
   switch (input.type) {
@@ -294,6 +294,10 @@ export async function bulkCreateQuestions(
   rawText: string,
   startOrderIndex: number
 ): Promise<BulkImportResult> {
+  if (rawText.trim().startsWith("[")) {
+    return bulkCreateQuestionsFromJson(quizId, rawText, startOrderIndex);
+  }
+
   let parsed: ParsedBulkQuestion[];
   try {
     parsed = parseBulkMultipleChoice(rawText);
@@ -328,5 +332,83 @@ export async function bulkCreateQuestions(
 
   revalidatePath(`/admin/quizzes/${quizId}`);
 
+  return { ok: true, count: rows.length };
+}
+
+const QUESTION_TYPES: QuestionType[] = [
+  "multiple_choice",
+  "true_false",
+  "fill_blank",
+  "sentence_completion",
+  "matching",
+];
+
+/** JSON import: the pasted text is a JSON array of question objects, each
+ *  shaped like QuestionFormInput (type and prompt are always needed; the
+ *  rest depends on the type). It lets one paste add every question type,
+ *  with explanations, in a single step. */
+async function bulkCreateQuestionsFromJson(
+  quizId: string,
+  rawJson: string,
+  startOrderIndex: number
+): Promise<BulkImportResult> {
+  let items: unknown;
+  try {
+    items = JSON.parse(rawJson);
+  } catch {
+    return { ok: false, error: "The pasted JSON could not be read." };
+  }
+  if (!Array.isArray(items) || items.length === 0) {
+    return { ok: false, error: "Expected a non-empty JSON array of questions." };
+  }
+
+  const strings = (v: unknown): string[] => (Array.isArray(v) ? v.map((x) => String(x)) : []);
+  const rows: Record<string, unknown>[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const it = (items[i] ?? {}) as Record<string, unknown>;
+    const type = String(it.type ?? "") as QuestionType;
+    if (!QUESTION_TYPES.includes(type)) {
+      return { ok: false, error: `Question ${i + 1}: unknown type "${String(it.type)}".` };
+    }
+    const input: QuestionFormInput = {
+      type,
+      prompt: String(it.prompt ?? ""),
+      explanation: String(it.explanation ?? ""),
+      points: it.points === undefined ? 1 : Number(it.points),
+      orderIndex: startOrderIndex + i,
+      options: strings(it.options),
+      correctIndex: it.correctIndex === undefined ? 0 : Number(it.correctIndex),
+      correctBoolean: Boolean(it.correctBoolean),
+      acceptedAnswers: strings(it.acceptedAnswers),
+      pairs: Array.isArray(it.pairs)
+        ? it.pairs.map((p) => {
+            const pair = (p ?? {}) as Record<string, unknown>;
+            return { left: String(pair.left ?? ""), right: String(pair.right ?? "") };
+          })
+        : [],
+    };
+    const problem = validate(input);
+    if (problem) {
+      return { ok: false, error: `Question ${i + 1}: ${problem}` };
+    }
+    rows.push({
+      quiz_id: quizId,
+      order_index: input.orderIndex,
+      type: input.type,
+      prompt: input.prompt.trim(),
+      explanation: input.explanation.trim() || null,
+      points: input.points,
+      data: buildQuestionData(input),
+    });
+  }
+
+  const supabase = createClient();
+  const { error } = await supabase.from("questions").insert(rows);
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath(`/admin/quizzes/${quizId}`);
   return { ok: true, count: rows.length };
 }
