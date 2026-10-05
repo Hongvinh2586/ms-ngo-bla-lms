@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 body {
-  background-color: #f8f1e1;
-  color: #2e2014;
+  background-color: #f1f3df;
+  color: #2b3010;
 }
 
 /* Match the "level-tag" look from the public homepage. */
@@ -14,9 +14,9 @@ body {
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  color: #7a5119;
-  border: 1px solid #9c6b22;
-  background: #f0dfae;
+  color: #3e4a12;
+  border: 2px solid #9aa55a;
+  background: #e1e8bc;
   padding: 4px 11px;
-  border-radius: 6px;
+  border-radius: 999px;
 }
