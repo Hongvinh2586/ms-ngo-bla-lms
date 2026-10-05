@@ -23,6 +23,7 @@ export default async function QuizzesPage({
     .from("quizzes")
     .select("id, slug, title, description, level, category, time_limit_minutes")
     .eq("is_lesson", false)
+    .eq("is_published", true)
     .order("created_at", { ascending: true });
 
   if (activeCategory) {
