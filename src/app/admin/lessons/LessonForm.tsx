@@ -29,6 +29,7 @@ export default function LessonForm({
   const [slug, setSlug] = useState(lesson?.slug ?? "");
   const [title, setTitle] = useState(lesson?.title ?? "");
   const [level, setLevel] = useState(lesson?.level ?? "");
+  const [category, setCategory] = useState(lesson?.category ?? "");
   const [orderIndex, setOrderIndex] = useState(
     lesson?.order_index != null ? String(lesson.order_index) : ""
   );
@@ -46,6 +47,7 @@ export default function LessonForm({
       slug,
       title,
       level,
+      category,
       orderIndex: orderIndex.trim() ? Number(orderIndex) : null,
       isPublished,
       vocabularyText,
@@ -81,6 +83,13 @@ export default function LessonForm({
           placeholder="tu-dong-tao-tu-ten"
           className={inputClass}
         />
+      </Field>
+
+      <Field label="Mục hiển thị" hint="Chọn Vocabulary Builder để bài học hiện trong mục Vocabulary Builder (có tab Flashcards).">
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
+          <option value="">Lessons for Academic Writing</option>
+          <option value="vocabulary">Vocabulary Builder</option>
+        </select>
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
