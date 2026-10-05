@@ -18,7 +18,7 @@ export default async function LessonsPage() {
     .select("id, slug, title, level")
     .eq("is_lesson", true)
     .eq("is_published", true)
-    .or("category.is.null,category.neq.vocabulary")
+    .or("category.is.null,category.not.like.vocabulary*")
     .order("order_index", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
     .returns<QuizRow[]>();
