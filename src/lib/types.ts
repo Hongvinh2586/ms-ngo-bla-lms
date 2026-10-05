@@ -149,8 +149,8 @@ export const WRITING_SUB_COURSES: CourseInfo[] = [
   {
     slug: "writing-b1-b2",
     category: "writing-b1-b2",
-    title: "B1-B2 Class",
-    description: "Writing practice and quizzes for the mixed B1–B2 class.",
+    title: "C16D7",
+    description: "B1-B2",
   },
 ];
 
