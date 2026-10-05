@@ -29,7 +29,7 @@ export async function createLesson(input: LessonFormInput) {
       title: input.title.trim(),
       description: null,
       level: input.level.trim() || null,
-      category: null,
+      category: input.category?.trim() || null,
       time_limit_minutes: null,
       is_published: input.isPublished,
       is_lesson: true,
@@ -63,6 +63,7 @@ export async function updateLesson(lessonId: string, input: LessonFormInput) {
       slug,
       title: input.title.trim(),
       level: input.level.trim() || null,
+      category: input.category?.trim() || null,
       is_published: input.isPublished,
       order_index: input.orderIndex,
       vocabulary: parseVocabularyText(input.vocabularyText),
@@ -79,6 +80,7 @@ export async function updateLesson(lessonId: string, input: LessonFormInput) {
   revalidatePath(`/admin/lessons/${lessonId}`);
   revalidatePath("/lessons");
   revalidatePath(`/lessons/${slug}`);
+  revalidatePath("/quizzes");
 }
 
 export async function deleteLesson(lessonId: string) {
