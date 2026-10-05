@@ -49,22 +49,22 @@ export default async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-paper/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b-[3px] border-line bg-surface/95 backdrop-blur">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent font-display text-sm font-bold text-white">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent font-display text-xl font-extrabold text-white">
             N
           </span>
           <span>
-            <span className="block font-display text-base font-bold text-ink">Ms Ngo Bla</span>
-            <span className="block text-[10px] font-medium uppercase tracking-widest text-ink-faint">
+            <span className="block font-display text-xl font-extrabold leading-tight text-ink">Ms Ngo Bla</span>
+            <span className="block text-[11px] font-bold uppercase tracking-widest text-ink-faint">
               Student area
             </span>
           </span>
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-lg font-semibold text-accent-strong">
-          <Link href="/" className="hover:text-accent">
+        <nav className="flex flex-wrap items-center gap-2 text-base font-extrabold text-ink">
+          <Link href="/" className="rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white">
             Home
           </Link>
           {FEATURED_COURSES.map((course) =>
@@ -72,7 +72,7 @@ export default async function Header() {
               <div key={course.category} className="group relative">
                 <Link
                   href="/writing"
-                  className="flex items-center gap-1 hover:text-accent"
+                  className="flex items-center gap-1 rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white"
                 >
                   {course.title}
                   <svg
@@ -130,13 +130,13 @@ export default async function Header() {
               <Link
                 key={course.category}
                 href={`/quizzes?category=${course.category}`}
-                className="hover:text-accent"
+                className="rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white"
               >
                 {course.title}
               </Link>
             )
           )}
-          <Link href="/results" className="hover:text-accent">
+          <Link href="/results" className="rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white">
             My results
           </Link>
           {isAdmin && (
@@ -155,7 +155,7 @@ export default async function Header() {
               <span className="hidden text-sm text-ink-soft sm:inline">{displayName}</span>
               <Link
                 href="/account"
-                className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink hover:border-ink-soft transition-colors"
+                className="rounded-full border-2 border-line bg-surface px-4 py-2 text-sm font-bold text-ink hover:border-ink-soft transition-colors"
               >
                 Change password
               </Link>
@@ -165,13 +165,13 @@ export default async function Header() {
             <>
               <Link
                 href="/login"
-                className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink hover:border-ink-soft transition-colors"
+                className="rounded-full border-2 border-line bg-surface px-4 py-2 text-sm font-bold text-ink hover:border-ink-soft transition-colors"
               >
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-strong transition-colors"
+                className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-white hover:bg-accent-strong transition-colors"
               >
                 Sign up
               </Link>
