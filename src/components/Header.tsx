@@ -44,7 +44,7 @@ export default async function Header() {
       .select("id", { count: "exact", head: true })
       .eq("is_lesson", true)
       .eq("is_published", true)
-      .or("category.is.null,category.neq.vocabulary");
+      .or("category.is.null,category.not.like.vocabulary*");
     lessonCount = count ?? 0;
   }
 
