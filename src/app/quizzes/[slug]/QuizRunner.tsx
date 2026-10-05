@@ -70,7 +70,9 @@ export default function QuizRunner({ quizId, questions, section }: Props) {
           disabled={isPending}
           className="rounded-full bg-accent px-7 py-3 text-base font-extrabold text-white shadow-[0_4px_0_#3E4A12] hover:bg-accent-strong disabled:opacity-60 transition-colors"
         >
-          $1</div>
+          {isPending ? "Submitting…" : "Submit quiz"}
+        </button>
+        </div>
       </div>
     </div>
   );
