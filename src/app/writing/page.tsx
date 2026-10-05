@@ -32,7 +32,7 @@ export default async function WritingCoursesPage() {
     .select("id", { count: "exact", head: true })
     .eq("is_lesson", true)
     .eq("is_published", true)
-    .or("category.is.null,category.neq.vocabulary");
+    .or("category.is.null,category.not.like.vocabulary*");
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-14">
