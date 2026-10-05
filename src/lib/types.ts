@@ -148,6 +148,19 @@ export const WRITING_SUB_COURSES: CourseInfo[] = [
   },
 ];
 
+/** Books inside the Vocabulary Builder course. Each book is its own folder:
+ *  its lessons use the category below (always starting with "vocabulary-"),
+ *  and /quizzes?category=vocabulary lists the books as cards. To add a new
+ *  book, add an entry here and an <option> in admin/lessons/LessonForm.tsx. */
+export const VOCAB_FOLDERS: CourseInfo[] = [
+  {
+    slug: "timed-reading-4",
+    category: "vocabulary-timed-reading-4",
+    title: "Time Reading for Fluency 4",
+    description: "Eight vocabulary lessons (B1–B2) built from the reading topics, with flashcards, structures and mixed practice.",
+  },
+];
+
 /** Every real, filterable quiz category (i.e. every category a quiz row can
  *  actually have) — used to look up a course by its `category` value, e.g.
  *  for the /quizzes page heading and filter pills. Unlike FEATURED_COURSES,
@@ -156,6 +169,7 @@ export const WRITING_SUB_COURSES: CourseInfo[] = [
 export const ALL_COURSES: CourseInfo[] = [
   ...FEATURED_COURSES.filter((c) => c.category !== "writing"),
   ...WRITING_SUB_COURSES,
+  ...VOCAB_FOLDERS,
 ];
 
 /** What the browser sends back on submit, keyed by question id. */
