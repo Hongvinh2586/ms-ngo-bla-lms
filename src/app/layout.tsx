@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
-import { Noto_Serif, Work_Sans } from "next/font/google";
+import { Baloo_2, Nunito } from "next/font/google";
 import Header from "@/components/Header";
 import "./globals.css";
 
-const notoSerif = Noto_Serif({
+const notoSerif = Baloo_2({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["600", "700", "800"],
   variable: "--font-display",
   display: "swap",
 });
 
-const workSans = Work_Sans({
+const workSans = Nunito({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-body",
   display: "swap",
 });
