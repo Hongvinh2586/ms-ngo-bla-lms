@@ -154,6 +154,12 @@ export const WRITING_SUB_COURSES: CourseInfo[] = [
  *  book, add an entry here and an <option> in admin/lessons/LessonForm.tsx. */
 export const VOCAB_FOLDERS: CourseInfo[] = [
   {
+    slug: "timed-reading-3",
+    category: "vocabulary-timed-reading-3",
+    title: "Timed Reading for Fluency 3",
+    description: "Eight vocabulary lessons (A2–B1+) built from the reading topics, with flashcards in Vietnamese, structures and mixed practice.",
+  },
+  {
     slug: "timed-reading-4",
     category: "vocabulary-timed-reading-4",
     title: "Timed Reading for Fluency 4",
