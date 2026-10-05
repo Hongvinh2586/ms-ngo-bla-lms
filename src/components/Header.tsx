@@ -49,7 +49,7 @@ export default async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b-[3px] border-line bg-surface/95 backdrop-blur">
+    <header className="md:sticky md:top-0 z-50 border-b-[3px] border-line bg-surface/95 backdrop-blur">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent font-display text-xl font-extrabold text-white">
@@ -85,7 +85,7 @@ export default async function Header() {
                     <path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
                 </Link>
-                <div className="invisible absolute left-0 top-full z-20 w-[320px] pt-3 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100">
+                <div className="invisible absolute right-0 top-full z-20 w-[320px] max-w-[calc(100vw-3rem)] sm:left-0 sm:right-auto pt-3 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100">
                   <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
                     <div className="grid grid-cols-2 gap-2">
                       {WRITING_SUB_COURSES.map((sub) => {
