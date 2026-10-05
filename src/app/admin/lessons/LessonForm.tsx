@@ -3,6 +3,7 @@
 import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { createLesson, updateLesson } from "./actions";
 import type { AdminQuizRow, LessonFormInput, VocabularyItem } from "@/lib/types";
+import { VOCAB_FOLDERS } from "@/lib/types";
 
 const inputClass =
   "rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:border-accent";
@@ -89,6 +90,11 @@ export default function LessonForm({
         <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
           <option value="">Lessons for Academic Writing</option>
           <option value="vocabulary">Vocabulary Builder</option>
+          {VOCAB_FOLDERS.map((f) => (
+            <option key={f.category} value={f.category}>
+              Vocabulary Builder / {f.title}
+            </option>
+          ))}
         </select>
       </Field>
 
