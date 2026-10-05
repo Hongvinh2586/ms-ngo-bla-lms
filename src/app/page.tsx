@@ -21,7 +21,9 @@ export default async function HomePage() {
       .returns<{ category: string | null }[]>();
     for (const row of quizCategories ?? []) {
       if (!row.category) continue;
-      countsByCategory.set(row.category, (countsByCategory.get(row.category) ?? 0) + 1);
+      // Lessons inside a Vocabulary Builder book count toward Vocabulary Builder.
+      const cat = row.category.startsWith("vocabulary-") ? "vocabulary" : row.category;
+      countsByCategory.set(cat, (countsByCategory.get(cat) ?? 0) + 1);
     }
   }
 
