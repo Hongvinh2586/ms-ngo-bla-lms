@@ -43,7 +43,8 @@ export default async function Header() {
       .from("quizzes")
       .select("id", { count: "exact", head: true })
       .eq("is_lesson", true)
-      .eq("is_published", true);
+      .eq("is_published", true)
+      .or("category.is.null,category.neq.vocabulary");
     lessonCount = count ?? 0;
   }
 
