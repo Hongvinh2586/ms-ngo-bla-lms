@@ -94,7 +94,7 @@ function QuestionCard({
       <p className="inline-block rounded-full bg-tint-butter px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-ink">
         Question {index + 1}
       </p>
-      <p className="mt-3 font-display text-xl font-bold text-ink">{question.prompt}</p>
+      <PromptView prompt={question.prompt} />
 
       <div className="mt-4">
         {question.type === "multiple_choice" && (
@@ -110,6 +110,68 @@ function QuestionCard({
           <MatchingInput question={question} answer={answer} onChange={onChange} />
         )}
       </div>
+    </div>
+  );
+}
+
+// Splits a question prompt into: an instruction line (e.g. "Choose the best
+// linking word."), the question body, and an optional word box, so the student
+// sees them as separate blocks. Prompts without a recognisable instruction are
+// shown as before.
+const INSTRUCTION_RE =
+  /^((?:Choose|Read|Match|Write|Complete|Combine|Use|Fill|Rewrite|Add|Make|Decide|Put|Change|Correct|Find|Select|Circle|Order|Answer|Look|Listen|Identify|Rearrange|Join|Transform|Paraphrase|Finish|Unscramble|Mark|Replace|Insert|Underline|Pick|True or [Ff]alse)\b[^.:?!]*[.:])(?:\s+|$)/;
+
+function splitPrompt(prompt: string): { instruction: string; body: string; words: string[] } {
+  let text = prompt.trim();
+  let words: string[] = [];
+  const wb = text.match(/\[Word box:\s*([^\]]*)\]\s*$/i);
+  if (wb) {
+    words = wb[1].split("/").map((w) => w.trim()).filter(Boolean);
+    text = text.slice(0, wb.index).trim();
+  }
+  let instruction = "";
+  const m = text.match(INSTRUCTION_RE);
+  if (m) {
+    const rest = text.slice(m[0].length).trim();
+    if (rest) {
+      instruction = m[1].trim();
+      text = rest;
+    }
+  }
+  return { instruction, body: text, words };
+}
+
+function PromptView({ prompt }: { prompt: string }) {
+  const { instruction, body, words } = splitPrompt(prompt);
+  return (
+    <div className="mt-3">
+      {instruction && (
+        <p className="mb-3 text-base font-extrabold uppercase tracking-wide text-accent-strong">
+          {instruction}
+        </p>
+      )}
+      <p
+        className={
+          instruction
+            ? "border-l-4 border-ink pl-4 font-display text-xl font-bold text-ink"
+            : "font-display text-xl font-bold text-ink"
+        }
+      >
+        {body}
+      </p>
+      {words.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-ink">Word box</span>
+          {words.map((w, i) => (
+            <span
+              key={i}
+              className="rounded-full border-2 border-ink bg-tint-butter px-3 py-1 text-base font-bold text-ink"
+            >
+              {w}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
