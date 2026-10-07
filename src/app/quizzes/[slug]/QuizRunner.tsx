@@ -94,7 +94,7 @@ function QuestionCard({
       <p className="inline-block rounded-full bg-tint-butter px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-ink">
         Question {index + 1}
       </p>
-      <PromptView prompt={question.prompt} />
+      <PromptView prompt={question.prompt} type={question.type} />
 
       <div className="mt-4">
         {question.type === "multiple_choice" && (
@@ -141,8 +141,18 @@ function splitPrompt(prompt: string): { instruction: string; body: string; words
   return { instruction, body: text, words };
 }
 
-function PromptView({ prompt }: { prompt: string }) {
-  const { instruction, body, words } = splitPrompt(prompt);
+function PromptView({ prompt, type }: { prompt: string; type: string }) {
+  const split = splitPrompt(prompt);
+  const { body, words } = split;
+  let instruction = split.instruction;
+  // Prompts that carry no written instruction get a short standard one.
+  if (!instruction) {
+    const hasBlank = /_{2,}/.test(body);
+    if (type === "true_false") instruction = "True or false?";
+    else if (type === "multiple_choice" && hasBlank) instruction = "Choose the best answer to fill the blank.";
+    else if ((type === "fill_blank" || type === "sentence_completion") && hasBlank)
+      instruction = "Write the missing word(s) in the blank.";
+  }
   return (
     <div className="mt-3">
       {instruction && (
