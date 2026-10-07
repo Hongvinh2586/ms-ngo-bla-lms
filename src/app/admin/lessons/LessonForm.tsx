@@ -95,6 +95,7 @@ export default function LessonForm({
               Vocabulary Builder / {f.title}
             </option>
           ))}
+          <option value="writing-c15d6">Writing Courses / C15D6 (B1+)</option>
         </select>
       </Field>
 
