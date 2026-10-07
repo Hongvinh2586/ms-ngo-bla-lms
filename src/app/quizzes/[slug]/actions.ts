@@ -9,11 +9,15 @@ import type { QuestionRow, StudentAnswers } from "@/lib/types";
 // 1000 up. Passing `section` scores only that part; leaving it out scores everything
 // (what every regular quiz does).
 const ADVANCED_FROM = 1000;
+// A lesson's Practice tab can hold two separate quizzes: questions numbered
+// below VOCAB_FROM are the "Structures" quiz, questions from VOCAB_FROM up to
+// ADVANCED_FROM are the "Vocabulary" quiz.
+const VOCAB_FROM = 500;
 
 export async function submitQuizAttempt(
   quizId: string,
   answers: StudentAnswers,
-  section?: "basic" | "advanced"
+  section?: "basic" | "advanced" | "structures" | "vocabulary"
 ) {
   const supabase = createClient();
   const {
@@ -40,7 +44,11 @@ export async function submitQuizAttempt(
       ? q.order_index >= ADVANCED_FROM
       : section === "basic"
         ? q.order_index < ADVANCED_FROM
-        : true
+        : section === "structures"
+          ? q.order_index < VOCAB_FROM
+          : section === "vocabulary"
+            ? q.order_index >= VOCAB_FROM && q.order_index < ADVANCED_FROM
+            : true
   );
 
   let score = 0;
