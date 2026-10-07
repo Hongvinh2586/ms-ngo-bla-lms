@@ -9,7 +9,7 @@ interface Props {
   quizSlug: string;
   questions: SafeQuestion[];
   /** Lessons only: score just the basic or just the advanced part of the quiz. */
-  section?: "basic" | "advanced";
+  section?: "basic" | "advanced" | "structures" | "vocabulary";
 }
 
 export default function QuizRunner({ quizId, questions, section }: Props) {
