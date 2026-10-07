@@ -315,6 +315,14 @@ export default function LessonTabs({
 }) {
   const hasAdvanced = advancedQuestions.length > 0;
 
+  // Practice can be split into two separate quizzes: questions numbered below
+  // 500 are the "Structures" quiz, questions from 500 up are the "Vocabulary"
+  // quiz (Advanced Practice starts at 1000 and is handled separately).
+  const VOCAB_FROM = 500;
+  const structuresQuestions = questions.filter((q) => q.order_index < VOCAB_FROM);
+  const vocabularyQuestions = questions.filter((q) => q.order_index >= VOCAB_FROM);
+  const hasTwoQuizzes = structuresQuestions.length > 0 && vocabularyQuestions.length > 0;
+
   const availableTabs: { key: Tab; label: string; count?: number }[] = [
     ...(vocabulary && vocabulary.length > 0
       ? [{ key: "vocabulary" as Tab, label: "Vocabulary", count: vocabulary.length }]
@@ -407,6 +415,24 @@ export default function LessonTabs({
         <div className={panel("practice")}>
           {questions.length === 0 ? (
             <p className="text-ink-soft">No practice questions yet.</p>
+          ) : hasTwoQuizzes ? (
+            <div className="flex flex-col gap-14">
+              {[
+                { key: "structures" as const, label: "Structures", items: structuresQuestions },
+                { key: "vocabulary" as const, label: "Vocabulary", items: vocabularyQuestions },
+              ].map((quiz, quizIndex) => (
+                <section key={quiz.key}>
+                  <div className="flex flex-wrap items-center gap-3 rounded-xl2 border border-accent/15 bg-accent-soft px-5 py-4">
+                    <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
+                      Quiz {quizIndex + 1}
+                    </span>
+                    <h2 className="font-display text-xl font-bold text-ink">{quiz.label}</h2>
+                    <span className="text-sm text-ink-soft">{quiz.items.length} questions · scored separately</span>
+                  </div>
+                  <QuizRunner quizId={quizId} quizSlug={quizSlug} questions={quiz.items} section={quiz.key} />
+                </section>
+              ))}
+            </div>
           ) : (
             <QuizRunner
               quizId={quizId}
