@@ -121,7 +121,12 @@ function QuestionCard({
 const INSTRUCTION_RE =
   /^((?:Choose|Read|Match|Write|Complete|Combine|Use|Fill|Rewrite|Add|Make|Decide|Put|Change|Correct|Find|Select|Circle|Order|Answer|Look|Listen|Identify|Rearrange|Join|Transform|Paraphrase|Finish|Unscramble|Mark|Replace|Insert|Underline|Pick|True or [Ff]alse)\b[^.:?!]*[.:])(?:\s+|$)/;
 
-function splitPrompt(prompt: string): { instruction: string; body: string; words: string[] } {
+function splitPrompt(prompt: string): {
+  instruction: string;
+  passage: string;
+  body: string;
+  words: string[];
+} {
   let text = prompt.trim();
   let words: string[] = [];
   const wb = text.match(/\[Word box:\s*([^\]]*)\]\s*$/i);
@@ -130,6 +135,7 @@ function splitPrompt(prompt: string): { instruction: string; body: string; words
     text = text.slice(0, wb.index).trim();
   }
   let instruction = "";
+  let passage = "";
   const m = text.match(INSTRUCTION_RE);
   if (m) {
     const rest = text.slice(m[0].length).trim();
@@ -137,13 +143,28 @@ function splitPrompt(prompt: string): { instruction: string; body: string; words
       instruction = m[1].trim();
       text = rest;
     }
+  } else {
+    // "Which ...?" on the first line, the material to work with on the next lines.
+    const nl = text.indexOf("\n");
+    if (nl > 0 && text.slice(0, nl).trim().endsWith("?")) {
+      instruction = text.slice(0, nl).trim();
+      text = text.slice(nl + 1).trim();
+    }
   }
-  return { instruction, body: text, words };
+  if (instruction) {
+    // Reading text first, the actual question as the last paragraph.
+    const blocks = text.split(/\n\s*\n/);
+    if (blocks.length >= 2) {
+      text = (blocks.pop() ?? "").trim();
+      passage = blocks.join("\n\n").trim();
+    }
+  }
+  return { instruction, passage, body: text, words };
 }
 
 function PromptView({ prompt, type }: { prompt: string; type: string }) {
   const split = splitPrompt(prompt);
-  const { body, words } = split;
+  const { passage, body, words } = split;
   let instruction = split.instruction;
   // Prompts that carry no written instruction get a short standard one.
   if (!instruction) {
@@ -160,11 +181,16 @@ function PromptView({ prompt, type }: { prompt: string; type: string }) {
           {instruction}
         </p>
       )}
+      {passage && (
+        <div className="mb-4 whitespace-pre-line rounded-2xl border-2 border-ink bg-tint-butter px-4 py-3 text-base font-semibold leading-relaxed text-ink">
+          {passage}
+        </div>
+      )}
       <p
         className={
-          instruction
+          (instruction
             ? "border-l-4 border-ink pl-4 font-display text-xl font-bold text-ink"
-            : "font-display text-xl font-bold text-ink"
+            : "font-display text-xl font-bold text-ink") + " whitespace-pre-line"
         }
       >
         {body}
