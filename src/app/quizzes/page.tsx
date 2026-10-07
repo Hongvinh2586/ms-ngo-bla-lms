@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ALL_COURSES, VOCAB_FOLDERS, type QuizRow } from "@/lib/types";
+import { ALL_COURSES, VOCAB_FOLDERS, WRITING_LESSON_FOLDERS, type QuizRow } from "@/lib/types";
 import { FunCard, FunLink } from "@/components/FunCard";
 
 export default async function QuizzesPage({
@@ -38,13 +38,18 @@ export default async function QuizzesPage({
   const activeFolder = VOCAB_FOLDERS.find((f) => f.category === activeCategory);
   const isVocabHub = activeCategory === "vocabulary";
   let lessonItems: QuizRow[] = [];
-  if (activeFolder) {
+  const lessonFolderCategory: string | null = activeFolder
+    ? activeFolder.category
+    : activeCategory && WRITING_LESSON_FOLDERS.includes(activeCategory)
+      ? activeCategory
+      : null;
+  if (lessonFolderCategory) {
     const { data: folderLessons } = await supabase
       .from("quizzes")
       .select("id, slug, title, description, level, category, time_limit_minutes")
       .eq("is_lesson", true)
       .eq("is_published", true)
-      .eq("category", activeFolder.category)
+      .eq("category", lessonFolderCategory)
       .order("order_index", { ascending: true })
       .returns<QuizRow[]>();
     lessonItems = folderLessons ?? [];
