@@ -67,35 +67,29 @@ export default function QuizRunner({ quizId, questions, section, mascot }: Props
         </p>
       )}
 
-      <div className="sticky bottom-3 z-10 flex flex-col gap-3 rounded-xl2 border-[3px] border-ink bg-tint-butter px-5 pb-4 pt-3 shadow-[0_5px_0_#2B3010]">
-        <div className="relative pt-8">
-          <span
-            className="mascot-bob absolute top-0 -translate-x-1/2 text-3xl leading-none transition-all duration-500"
-            style={{ left: Math.min(Math.max(pct, 5), 95) + "%" }}
-            aria-hidden="true"
-          >
-            {mascot ?? "\u{1F41D}"}
-          </span>
-          <div className="h-4 overflow-hidden rounded-full border-2 border-ink bg-white/80">
-            <div
-              className="h-full rounded-full bg-accent transition-all duration-500"
-              style={{ width: pct + "%" }}
-            />
+      <div className="sticky bottom-3 z-10 flex flex-col gap-2 rounded-xl2 border-[3px] border-ink bg-tint-butter px-4 pb-3 pt-2 shadow-[0_5px_0_#2B3010]">
+        <div className="flex items-end gap-3">
+          <div className="relative min-w-0 flex-1 pt-7">
+            <span
+              className="mascot-bob absolute top-0 -translate-x-1/2 text-2xl leading-none transition-all duration-500"
+              style={{ left: Math.min(Math.max(pct, 5), 95) + "%" }}
+              aria-hidden="true"
+            >
+              {mascot ?? "\u{1F41D}"}
+            </span>
+            <div className="h-4 overflow-hidden rounded-full border-2 border-ink bg-white/80">
+              <div
+                className="h-full rounded-full bg-accent transition-all duration-500"
+                style={{ width: pct + "%" }}
+              />
+            </div>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-base font-extrabold text-ink">
-              {answeredCount} of {total} answered
-            </p>
-            <p className="text-sm font-bold text-ink-soft">{cheer}</p>
-          </div>
-          <div className="flex items-center gap-1" aria-label={starsLit + " of 3 stars"}>
+          <div className="flex shrink-0 items-center" aria-label={starsLit + " of 3 stars"}>
             {[0, 1, 2].map((i) => (
               <svg
                 key={i + "-" + (i < starsLit ? "on" : "off")}
-                width="30"
-                height="30"
+                width="26"
+                height="26"
                 viewBox="0 0 24 24"
                 fill={i < starsLit ? "#FFC93C" : "#FFFFFF"}
                 stroke="#2B3010"
@@ -108,10 +102,18 @@ export default function QuizRunner({ quizId, questions, section, mascot }: Props
               </svg>
             ))}
           </div>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-base font-extrabold leading-tight text-ink">
+              {answeredCount} of {total} answered
+            </p>
+            <p className="text-xs font-bold leading-tight text-ink-soft sm:text-sm">{cheer}</p>
+          </div>
           <button
             onClick={handleSubmit}
             disabled={isPending}
-            className="press rounded-full bg-accent px-9 py-4 text-lg font-extrabold text-white shadow-[0_5px_0_#3E4A12] transition-colors hover:bg-accent-strong disabled:opacity-60"
+            className="press shrink-0 rounded-full bg-accent px-7 py-3 text-base font-extrabold text-white shadow-[0_5px_0_#3E4A12] transition-colors hover:bg-accent-strong disabled:opacity-60 sm:px-9 sm:py-3.5 sm:text-lg"
           >
             {isPending ? "Submitting…" : "Submit quiz"}
           </button>
