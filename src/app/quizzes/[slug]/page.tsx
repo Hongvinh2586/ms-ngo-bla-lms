@@ -78,6 +78,7 @@ export default async function TakeQuizPage({ params }: { params: { slug: string 
           quizSlug={quiz.slug}
           questions={safeQuestions}
           mascot={mascot}
+          timeLimitMinutes={quiz.time_limit_minutes}
         />
       )}
     </div>
