@@ -12,6 +12,7 @@ const CATEGORY_OPTIONS = [
   { value: "writing-b1", label: "B1 Writing Course" },
   { value: "writing-b2", label: "B2 Writing Course" },
   { value: "writing-b1-b2", label: "C16D7 (B1-B2)" },
+  { value: "writing-c15d6", label: "C15D6" },
 ];
 
 const inputClass =
