@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ScoreRing, Stars, praiseFor } from "@/components/FunCard";
 import Celebration from "@/components/Celebration";
+import { mascotFor } from "@/lib/mascot";
+import { computeBadges, type AttemptStat } from "@/lib/badges";
 import type {
   FillBlankData,
   MatchingData,
@@ -121,6 +123,32 @@ export default async function AttemptResultPage({
     (a, b) => a.questions.order_index - b.questions.order_index
   );
 
+  // Badges this attempt unlocked: earned with it, but not without it.
+  const { data: allAttempts } = await supabase
+    .from("quiz_attempts")
+    .select("quiz_id, percentage, submitted_at")
+    .eq("student_id", user.id)
+    .returns<AttemptStat[]>();
+  const upToNow = (allAttempts ?? []).filter((a) => a.submitted_at <= attempt.submitted_at);
+  const before = upToNow.filter((a) => a.submitted_at < attempt.submitted_at);
+  const alreadyHad = new Set(
+    computeBadges(before)
+      .filter((b) => b.earned)
+      .map((b) => b.id)
+  );
+  const newBadges = computeBadges(upToNow).filter((b) => b.earned && !alreadyHad.has(b.id));
+
+  const level = praiseFor(attempt.percentage).level;
+  const mascot = mascotFor(attempt.quizzes?.title ?? "");
+  const mascotSays =
+    level >= 3
+      ? "I am so proud of you!"
+      : level === 2
+        ? "Nice work! Shall we go again?"
+        : level === 1
+          ? "Good try! You can do it!"
+          : "Don't give up. I believe in you!";
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
       <Celebration level={praiseFor(attempt.percentage).level} />
@@ -129,6 +157,17 @@ export default async function AttemptResultPage({
       </p>
 
       <div className="mt-3 flex flex-col items-center gap-5 rounded-xl2 border-[3px] border-ink bg-tint-butter p-8 text-center shadow-[0_8px_0_#2B3010]">
+        <div className="flex flex-col items-center gap-2">
+          <span
+            className={(level >= 3 ? "mascot-dance" : "mascot-bob") + " text-7xl leading-none"}
+            aria-hidden="true"
+          >
+            {mascot}
+          </span>
+          <p className="rounded-full border-2 border-ink bg-white px-4 py-1.5 text-base font-extrabold text-ink">
+            {mascotSays}
+          </p>
+        </div>
         <Stars count={praiseFor(attempt.percentage).stars} />
         <p className="cheer-pop font-display text-4xl font-extrabold text-ink sm:text-5xl">
           {praiseFor(attempt.percentage).title}
@@ -148,18 +187,37 @@ export default async function AttemptResultPage({
         <div className="flex flex-wrap justify-center gap-3">
           <Link
             href={"/quizzes/" + (attempt.quizzes?.slug ?? "")}
-            className="rounded-full bg-accent px-6 py-3 text-base font-extrabold text-white shadow-[0_5px_0_#3E4A12] transition-transform hover:-translate-y-0.5"
+            className="press rounded-full bg-accent px-7 py-3.5 text-lg font-extrabold text-white shadow-[0_5px_0_#3E4A12] transition-colors hover:bg-accent-strong"
           >
             Retake this quiz
           </Link>
           <Link
             href="/results"
-            className="rounded-full border-[3px] border-line bg-surface px-6 py-2.5 text-base font-extrabold text-ink transition-transform hover:-translate-y-0.5"
+            className="press rounded-full border-[3px] border-line bg-surface px-7 py-3 text-lg font-extrabold text-ink shadow-[0_5px_0_#CBD1A0]"
           >
             My results
           </Link>
         </div>
       </div>
+
+      {newBadges.length > 0 && (
+        <div className="mt-8 rounded-xl2 border-[3px] border-ink bg-white p-6 text-center shadow-[0_6px_0_#2B3010]">
+          <p className="font-display text-2xl font-extrabold text-ink">
+            {newBadges.length > 1 ? "New badges unlocked!" : "New badge unlocked!"}
+          </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-4">
+            {newBadges.map((b) => (
+              <div key={b.id} className="flex w-36 flex-col items-center gap-1">
+                <span className="mascot-dance text-5xl leading-none" aria-hidden="true">
+                  {b.emoji}
+                </span>
+                <span className="text-base font-extrabold text-ink">{b.title}</span>
+                <span className="text-xs font-semibold text-ink-soft">{b.hint}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col gap-5">
         {sortedAnswers.map((answer, index) => {
