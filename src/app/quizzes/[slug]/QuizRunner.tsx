@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import type { SafeQuestion, StudentAnswer, StudentAnswers } from "@/lib/types";
 import { submitQuizAttempt } from "./actions";
 
@@ -12,9 +12,35 @@ interface Props {
   section?: "basic" | "advanced" | "structures" | "vocabulary";
   /** Emoji mascot that rides along the progress bar. */
   mascot?: string;
+  /** Suggested time in minutes. When set, a countdown is shown while the student works. */
+  timeLimitMinutes?: number | null;
 }
 
-export default function QuizRunner({ quizId, questions, section, mascot }: Props) {
+function formatClock(totalSeconds: number): string {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const sec = totalSeconds % 60;
+  const mm = String(m).padStart(2, "0");
+  const ss = String(sec).padStart(2, "0");
+  return h > 0 ? h + ":" + mm + ":" + ss : mm + ":" + ss;
+}
+
+export default function QuizRunner({ quizId, questions, section, mascot, timeLimitMinutes }: Props) {
+  const limitSeconds = timeLimitMinutes && timeLimitMinutes > 0 ? Math.round(timeLimitMinutes * 60) : null;
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(limitSeconds);
+  useEffect(() => {
+    if (limitSeconds === null) return;
+    // Count down from a fixed end time so a throttled background tab stays accurate.
+    const endAt = Date.now() + limitSeconds * 1000;
+    setSecondsLeft(limitSeconds);
+    const id = setInterval(() => {
+      setSecondsLeft(Math.max(0, Math.ceil((endAt - Date.now()) / 1000)));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [limitSeconds]);
+  const timeUp = secondsLeft !== null && secondsLeft <= 0;
+  const timeLow = secondsLeft !== null && limitSeconds !== null && !timeUp && secondsLeft <= Math.min(60, limitSeconds * 0.2);
+
   const [answers, setAnswers] = useState<StudentAnswers>({});
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -24,7 +50,9 @@ export default function QuizRunner({ quizId, questions, section, mascot }: Props
   const pct = total ? (answeredCount / total) * 100 : 0;
   const starsLit = total === 0 ? 0 : pct >= 100 ? 3 : pct >= 66 ? 2 : pct >= 33 ? 1 : 0;
   const cheer =
-    answeredCount === 0
+    timeUp
+      ? "Time's up! Press Submit when you are ready."
+      : answeredCount === 0
       ? "Let's go!"
       : answeredCount >= total
         ? "All answered. Press Submit!"
@@ -85,6 +113,18 @@ export default function QuizRunner({ quizId, questions, section, mascot }: Props
               />
             </div>
           </div>
+          {secondsLeft !== null && (
+            <div
+              className={
+                "shrink-0 rounded-full border-2 border-ink px-3 py-1 text-sm font-extrabold tabular-nums " +
+                (timeUp ? "bg-bad text-white" : timeLow ? "animate-pulse bg-bad-soft text-bad" : "bg-white text-ink")
+              }
+              role="timer"
+              aria-label={timeUp ? "Time is up" : "Time left " + formatClock(secondsLeft)}
+            >
+              {timeUp ? "Time's up!" : "\u23F0 " + formatClock(secondsLeft)}
+            </div>
+          )}
           <div className="flex shrink-0 items-center" aria-label={starsLit + " of 3 stars"}>
             {[0, 1, 2].map((i) => (
               <svg
