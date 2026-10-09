@@ -110,7 +110,7 @@ export default async function Header() {
           )}
         </MobileMenu>
 
-        <nav className="hidden flex-wrap items-center gap-1.5 text-[15px] font-extrabold text-ink md:flex">
+        <nav className="hidden flex-wrap items-center gap-1.5 text-[15px] font-extrabold text-ink xl:flex">
           <Link href="/" className="rounded-full bg-paper-alt px-3.5 py-2 transition-colors hover:bg-accent hover:text-white">
             Home
           </Link>
@@ -196,7 +196,7 @@ export default async function Header() {
           )}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 xl:flex">
           {user ? (
             <>
               <div className="group relative">
