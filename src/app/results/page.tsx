@@ -2,9 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ScoreRing } from "@/components/FunCard";
+import BadgeShelf from "@/components/BadgeShelf";
+import { computeBadges, streakOf } from "@/lib/badges";
 
 interface AttemptListRow {
   id: string;
+  quiz_id: string;
   score: number;
   max_score: number;
   percentage: number;
@@ -24,15 +27,23 @@ export default async function ResultsPage() {
 
   const { data: attempts } = await supabase
     .from("quiz_attempts")
-    .select("id, score, max_score, percentage, submitted_at, quizzes ( title )")
+    .select("id, quiz_id, score, max_score, percentage, submitted_at, quizzes ( title )")
     .eq("student_id", user.id)
     .order("submitted_at", { ascending: false })
     .returns<AttemptListRow[]>();
+
+  const stats = (attempts ?? []).map((a) => ({
+    quiz_id: a.quiz_id,
+    percentage: Number(a.percentage),
+    submitted_at: a.submitted_at,
+  }));
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">My results</p>
       <h1 className="mt-2 font-display text-3xl font-extrabold text-ink sm:text-4xl">Your quiz history</h1>
+
+      <BadgeShelf badges={computeBadges(stats)} streak={streakOf(stats)} />
 
       {(!attempts || attempts.length === 0) && (
         <p className="mt-8 text-ink-soft">
