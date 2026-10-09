@@ -20,3 +20,43 @@ body {
   padding: 4px 11px;
   border-radius: 999px;
 }
+
+/* Mascots: a gentle bob, a faster wiggle when the card is hovered. */
+@keyframes mascot-bob {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-6px) rotate(3deg); }
+}
+.mascot-bob {
+  display: inline-block;
+  animation: mascot-bob 2.4s ease-in-out infinite;
+}
+article:hover .mascot-bob,
+a:hover .mascot-bob {
+  animation-duration: 0.6s;
+}
+
+/* Big buttons that sink when pressed, like a real shutter button. */
+.press {
+  transition: transform 0.06s ease-out, box-shadow 0.06s ease-out;
+}
+.press:active:not(:disabled) {
+  transform: translateY(5px) scale(0.98);
+  box-shadow: 0 1px 0 rgba(43, 48, 16, 0.55) !important;
+}
+
+/* Stars on the quiz progress bar pop when they light up. */
+@keyframes star-pop {
+  0% { transform: scale(0.6) rotate(-20deg); }
+  60% { transform: scale(1.35) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.star-lit {
+  animation: star-pop 0.45s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-bob,
+  .star-lit {
+    animation: none;
+  }
+}
