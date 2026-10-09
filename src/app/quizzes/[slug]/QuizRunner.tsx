@@ -55,6 +55,7 @@ export default function QuizRunner({ quizId, questions, section, mascot }: Props
         <QuestionCard
           key={question.id}
           index={index}
+          mascot={mascot ?? "\u{1F41D}"}
           question={question}
           answer={answers[question.id]}
           onChange={(answer) => setAnswer(question.id, answer)}
@@ -128,18 +129,42 @@ function QuestionCard({
   question,
   answer,
   onChange,
+  mascot,
 }: {
   index: number;
+  mascot: string;
   question: SafeQuestion;
   answer: StudentAnswer | undefined;
   onChange: (answer: StudentAnswer) => void;
 }) {
+  // Typed-answer questions can also be answered by tapping a word in the word box.
+  const blankType =
+    question.type === "fill_blank" || question.type === "sentence_completion"
+      ? question.type
+      : null;
+  const typed = answer?.type === "fill_blank" || answer?.type === "sentence_completion" ? answer.text : "";
+  // The mascot hops each time a choice changes (for typing, only when the first letter arrives).
+  const hopKey = answer ? (blankType ? "typed-" + (typed ? "yes" : "no") : JSON.stringify(answer)) : "none";
   return (
     <div className="rounded-xl2 border-[3px] border-ink bg-surface p-7 shadow-[0_6px_0_#2B3010]">
-      <p className="inline-block rounded-full bg-tint-butter px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-ink">
-        Question {index + 1}
-      </p>
-      <PromptView prompt={question.prompt} type={question.type} />
+      <div className="flex items-center justify-between gap-3">
+        <p className="inline-block rounded-full bg-tint-butter px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-ink">
+          Question {index + 1}
+        </p>
+        <span
+          key={hopKey}
+          className={(answer ? "mascot-hop" : "mascot-bob") + " text-3xl leading-none"}
+          aria-hidden="true"
+        >
+          {mascot}
+        </span>
+      </div>
+      <PromptView
+        prompt={question.prompt}
+        type={question.type}
+        picked={typed}
+        onPick={blankType ? (w: string) => onChange({ type: blankType, text: w }) : undefined}
+      />
 
       <div className="mt-4">
         {question.type === "multiple_choice" && (
@@ -207,7 +232,17 @@ function splitPrompt(prompt: string): {
   return { instruction, passage, body: text, words };
 }
 
-function PromptView({ prompt, type }: { prompt: string; type: string }) {
+function PromptView({
+  prompt,
+  type,
+  picked,
+  onPick,
+}: {
+  prompt: string;
+  type: string;
+  picked?: string;
+  onPick?: (word: string) => void;
+}) {
   const split = splitPrompt(prompt);
   const { passage, body, words } = split;
   let instruction = split.instruction;
@@ -242,15 +277,32 @@ function PromptView({ prompt, type }: { prompt: string; type: string }) {
       </p>
       {words.length > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-ink">Word box</span>
-          {words.map((w, i) => (
-            <span
-              key={i}
-              className="rounded-full border-2 border-ink bg-tint-butter px-3 py-1 text-base font-bold text-ink"
-            >
-              {w}
-            </span>
-          ))}
+          <span className="text-xs font-extrabold uppercase tracking-widest text-ink">Word box{onPick ? " · tap a word" : ""}</span>
+          {words.map((w, i) =>
+            onPick ? (
+              <button
+                key={i}
+                type="button"
+                onClick={() => onPick(w)}
+                style={{ transform: "rotate(" + ((i % 3) - 1) * 1.5 + "deg)" }}
+                className={
+                  "press rounded-full border-2 border-ink px-4 py-1.5 text-lg font-bold shadow-[0_3px_0_#2B3010] " +
+                  (picked && picked.trim().toLowerCase() === w.toLowerCase()
+                    ? "bg-accent text-white"
+                    : "bg-tint-butter text-ink")
+                }
+              >
+                {w}
+              </button>
+            ) : (
+              <span
+                key={i}
+                className="rounded-full border-2 border-ink bg-tint-butter px-3 py-1 text-base font-bold text-ink"
+              >
+                {w}
+              </span>
+            )
+          )}
         </div>
       )}
     </div>
@@ -276,7 +328,7 @@ function MultipleChoiceInput({
           key={i}
           className={`press flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base font-semibold transition-colors ${
             selectedIndex === i
-              ? "border-accent bg-accent-soft text-ink"
+              ? "pick-pop border-accent bg-accent-soft text-ink"
               : "border-line bg-white text-ink hover:border-accent"
           }`}
         >
@@ -312,7 +364,7 @@ function TrueFalseInput({
           onClick={() => onChange({ type: "true_false", value: option })}
           className={`press rounded-full border-2 px-8 py-3 text-lg font-extrabold shadow-[0_3px_0_#CBD1A0] transition-colors ${
             value === option
-              ? "border-accent bg-accent-soft text-ink"
+              ? "pick-pop border-accent bg-accent-soft text-ink"
               : "border-line bg-white text-ink hover:border-accent"
           }`}
         >
@@ -341,7 +393,10 @@ function TextInput({
       value={text}
       onChange={(e) => onChange({ type: questionType, text: e.target.value })}
       placeholder="Type your answer…"
-      className="w-full rounded-2xl border-2 border-line bg-white px-4 py-3 text-base text-ink outline-none focus:border-accent"
+      autoCapitalize="none"
+      autoComplete="off"
+      spellCheck={false}
+      className="w-full rounded-2xl border-[3px] border-ink bg-white px-5 py-4 text-xl font-bold text-ink shadow-[0_4px_0_#CBD1A0] outline-none transition-shadow placeholder:font-semibold placeholder:text-ink-faint focus:border-accent focus:shadow-[0_4px_0_#5B6B1F]"
     />
   );
 }
