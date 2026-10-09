@@ -76,6 +76,7 @@ export function FunCard({
   cta,
   mascot,
   tint: tintIndex,
+  status,
 }: {
   index: number;
   title: string;
@@ -88,6 +89,8 @@ export function FunCard({
   mascot?: string | null;
   /** Which colour to use (e.g. the week number); defaults to the card position. */
   tint?: number;
+  /** Has this student tried it? Shows "New!" or the best score. */
+  status?: { done: boolean; best?: number };
 }) {
   const tint = tintFor(tintIndex ?? index);
   return (
@@ -112,7 +115,19 @@ export function FunCard({
             <Glyph index={index} />
           )}
         </span>
-        {level && <span className="level-tag">{level}</span>}
+        <div className="flex flex-col items-end gap-1.5">
+          {level && <span className="level-tag">{level}</span>}
+          {status &&
+            (status.done ? (
+              <span className="rounded-full border-2 border-ink bg-good-soft px-3 py-1 text-xs font-extrabold text-ink">
+                ✓ Best {status.best}%
+              </span>
+            ) : (
+              <span className="new-wiggle rounded-full border-2 border-ink bg-[#FFE08A] px-3 py-1 text-xs font-extrabold text-ink">
+                New!
+              </span>
+            ))}
+        </div>
       </div>
       <h2 className="font-display text-lg font-extrabold leading-snug text-ink">{title}</h2>
       {description && (
