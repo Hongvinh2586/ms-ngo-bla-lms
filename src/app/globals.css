@@ -54,9 +54,55 @@ a:hover .mascot-bob {
   animation: star-pop 0.45s ease-out;
 }
 
+/* Picking an answer: the chosen option pops and the mascot hops. */
+@keyframes pick-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.pick-pop {
+  animation: pick-pop 0.3s ease-out;
+}
+@keyframes mascot-hop {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-14px) scale(1.25) rotate(-8deg); }
+  70% { transform: translateY(0) scale(0.95); }
+  100% { transform: translateY(0) scale(1); }
+}
+.mascot-hop {
+  display: inline-block;
+  animation: mascot-hop 0.5s ease-out;
+}
+
+/* Result page: the mascot dances when the score is high. */
+@keyframes mascot-dance {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  25% { transform: translateY(-18px) rotate(6deg); }
+  50% { transform: translateY(0) rotate(-6deg); }
+  75% { transform: translateY(-12px) rotate(8deg); }
+}
+.mascot-dance {
+  display: inline-block;
+  animation: mascot-dance 1s ease-in-out infinite;
+}
+
+/* "New!" tag on quizzes the student has not tried yet. */
+@keyframes new-wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg) scale(1.06); }
+}
+.new-wiggle {
+  display: inline-block;
+  animation: new-wiggle 1.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mascot-bob,
-  .star-lit {
+  .star-lit,
+  .pick-pop,
+  .mascot-hop,
+  .mascot-dance,
+  .new-wiggle {
     animation: none;
   }
 }
