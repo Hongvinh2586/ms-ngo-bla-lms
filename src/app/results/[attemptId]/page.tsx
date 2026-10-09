@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ScoreRing, Stars, praiseFor } from "@/components/FunCard";
+import Celebration from "@/components/Celebration";
 import type {
   FillBlankData,
   MatchingData,
@@ -122,13 +123,14 @@ export default async function AttemptResultPage({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
+      <Celebration level={praiseFor(attempt.percentage).level} />
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">
         {attempt.quizzes?.title ?? "Quiz result"}
       </p>
 
       <div className="mt-3 flex flex-col items-center gap-5 rounded-xl2 border-[3px] border-ink bg-tint-butter p-8 text-center shadow-[0_8px_0_#2B3010]">
         <Stars count={praiseFor(attempt.percentage).stars} />
-        <p className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
+        <p className="cheer-pop font-display text-4xl font-extrabold text-ink sm:text-5xl">
           {praiseFor(attempt.percentage).title}
         </p>
         <div className="relative h-[170px] w-[170px]">
