@@ -74,6 +74,8 @@ export function FunCard({
   meta,
   href,
   cta,
+  mascot,
+  tint: tintIndex,
 }: {
   index: number;
   title: string;
@@ -82,8 +84,12 @@ export function FunCard({
   meta?: string | null;
   href: string;
   cta: string;
+  /** Emoji mascot for the topic; replaces the plain icon when given. */
+  mascot?: string | null;
+  /** Which colour to use (e.g. the week number); defaults to the card position. */
+  tint?: number;
 }) {
-  const tint = tintFor(index);
+  const tint = tintFor(tintIndex ?? index);
   return (
     <article
       className={
@@ -94,11 +100,17 @@ export function FunCard({
       <div className="flex items-center justify-between gap-3">
         <span
           className={
-            "flex h-14 w-14 items-center justify-center rounded-2xl border-[3px] border-ink text-ink " +
+            "flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-ink text-ink " +
             tint.icon
           }
         >
-          <Glyph index={index} />
+          {mascot ? (
+            <span className="mascot-bob text-4xl leading-none" aria-hidden="true">
+              {mascot}
+            </span>
+          ) : (
+            <Glyph index={index} />
+          )}
         </span>
         {level && <span className="level-tag">{level}</span>}
       </div>
@@ -111,7 +123,7 @@ export function FunCard({
       {meta && <p className="text-sm font-bold text-ink-soft">{meta}</p>}
       <Link
         href={href}
-        className="mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-3.5 text-base font-extrabold text-white transition-colors hover:bg-accent"
+        className="press mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-4 text-lg font-extrabold text-white shadow-[0_5px_0_#5B6B1F] transition-colors hover:bg-accent-strong"
       >
         {cta}
       </Link>
