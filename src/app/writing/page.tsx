@@ -21,6 +21,7 @@ export default async function WritingCoursesPage() {
   const { data: quizCategories } = await supabase
     .from("quizzes")
     .select("category")
+    .eq("is_published", true)
     .returns<{ category: string | null }[]>();
   for (const row of quizCategories ?? []) {
     if (!row.category) continue;
