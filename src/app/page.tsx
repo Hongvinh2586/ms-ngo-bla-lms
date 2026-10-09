@@ -148,7 +148,14 @@ export default async function HomePage() {
           <span className="inline-block rounded-full bg-[#FFE08A] px-4 py-1.5 text-sm font-extrabold uppercase tracking-wider text-ink">
             {user ? "Welcome back" : "Student area"}
           </span>
-          <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.05] text-ink sm:text-6xl">
+          <div className="mt-4 flex gap-3 text-4xl leading-none" aria-hidden="true">
+            {["\u{1F98E}", "\u{1F422}", "\u{1F989}", "\u{1F43B}", "\u{1F98A}"].map((m, i) => (
+              <span key={i} className="mascot-bob" style={{ animationDelay: -i * 0.45 + "s" }}>
+                {m}
+              </span>
+            ))}
+          </div>
+          <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.05] text-ink sm:text-6xl">
             {user
               ? "Hi there! Ready to learn some English today?"
               : "Practice, get graded, keep track of your progress."}
@@ -162,13 +169,13 @@ export default async function HomePage() {
               <>
                 <Link
                   href="/quizzes"
-                  className="rounded-full bg-accent px-7 py-4 text-lg font-extrabold text-white shadow-[0_6px_0_#3E4A12] transition-transform hover:-translate-y-0.5"
+                  className="press rounded-full bg-accent px-8 py-4 text-lg font-extrabold text-white shadow-[0_6px_0_#3E4A12] transition-transform hover:-translate-y-0.5"
                 >
                   Start learning
                 </Link>
                 <Link
                   href="/results"
-                  className="rounded-full border-[3px] border-line bg-surface px-7 py-3.5 text-lg font-extrabold text-ink shadow-[0_6px_0_#CBD1A0] transition-transform hover:-translate-y-0.5"
+                  className="press rounded-full border-[3px] border-line bg-surface px-8 py-3.5 text-lg font-extrabold text-ink shadow-[0_6px_0_#CBD1A0] transition-transform hover:-translate-y-0.5"
                 >
                   My results
                 </Link>
@@ -177,13 +184,13 @@ export default async function HomePage() {
               <>
                 <Link
                   href="/signup"
-                  className="rounded-full bg-accent px-7 py-4 text-lg font-extrabold text-white shadow-[0_6px_0_#3E4A12] transition-transform hover:-translate-y-0.5"
+                  className="press rounded-full bg-accent px-8 py-4 text-lg font-extrabold text-white shadow-[0_6px_0_#3E4A12] transition-transform hover:-translate-y-0.5"
                 >
                   Create a student account
                 </Link>
                 <Link
                   href="/login"
-                  className="rounded-full border-[3px] border-line bg-surface px-7 py-3.5 text-lg font-extrabold text-ink shadow-[0_6px_0_#CBD1A0] transition-transform hover:-translate-y-0.5"
+                  className="press rounded-full border-[3px] border-line bg-surface px-8 py-3.5 text-lg font-extrabold text-ink shadow-[0_6px_0_#CBD1A0] transition-transform hover:-translate-y-0.5"
                 >
                   Log in
                 </Link>
