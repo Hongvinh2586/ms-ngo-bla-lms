@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { toSafeQuestionData } from "@/lib/grading";
 import type { QuestionRow, QuizRow, SafeQuestion } from "@/lib/types";
 import QuizRunner from "./QuizRunner";
+import { mascotFor } from "@/lib/mascot";
 
 export default async function TakeQuizPage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
@@ -43,10 +44,16 @@ export default async function TakeQuizPage({ params }: { params: { slug: string 
     data: toSafeQuestionData(q),
   }));
 
+  const mascot = mascotFor(quiz.title);
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-14">
       {quiz.level && <span className="level-tag">{quiz.level}</span>}
-      <h1 className="mt-3 font-display text-3xl font-extrabold text-ink sm:text-4xl">{quiz.title}</h1>
+      <h1 className="mt-3 font-display text-3xl font-extrabold text-ink sm:text-4xl"><span className="mascot-bob mr-3" aria-hidden="true">
+          {mascot}
+        </span>
+        {quiz.title}
+      </h1>
       {quiz.description && (
         <p className="mt-2 text-lg font-semibold text-ink-soft">
           {quiz.description.split("[[PASSAGE]]")[0].trim()}
@@ -66,7 +73,12 @@ export default async function TakeQuizPage({ params }: { params: { slug: string 
       {safeQuestions.length === 0 ? (
         <p className="mt-8 text-ink-soft">This quiz has no questions yet.</p>
       ) : (
-        <QuizRunner quizId={quiz.id} quizSlug={quiz.slug} questions={safeQuestions} />
+        <QuizRunner
+          quizId={quiz.id}
+          quizSlug={quiz.slug}
+          questions={safeQuestions}
+          mascot={mascot}
+        />
       )}
     </div>
   );
