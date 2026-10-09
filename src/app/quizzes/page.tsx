@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ALL_COURSES, VOCAB_FOLDERS, WRITING_LESSON_FOLDERS, type QuizRow } from "@/lib/types";
 import { FunCard, FunLink } from "@/components/FunCard";
+import { mascotFor, weekNumber } from "@/lib/mascot";
 
 export default async function QuizzesPage({
   searchParams,
@@ -201,6 +202,8 @@ export default async function QuizzesPage({
           <FunCard
             key={quiz.id}
             index={index}
+            mascot={mascotFor(quiz.title)}
+            tint={weekNumber(quiz.title) ?? index}
             title={quiz.title}
             description={quiz.description}
             level={quiz.level}
