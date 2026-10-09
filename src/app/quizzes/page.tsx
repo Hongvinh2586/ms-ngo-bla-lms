@@ -90,6 +90,18 @@ export default async function QuizzesPage({
     if (wa === 9999 && wb === 9999) return 0;
     return wa - wb || partOf(a.title) - partOf(b.title) || a.title.localeCompare(b.title);
   });
+  // Best score per quiz for this student, so cards can say "New!" or "Best 85%".
+  const bestByQuiz = new Map<string, number>();
+  const { data: myAttempts } = await supabase
+    .from("quiz_attempts")
+    .select("quiz_id, percentage")
+    .eq("student_id", user.id)
+    .returns<{ quiz_id: string; percentage: number }[]>();
+  for (const a of myAttempts ?? []) {
+    const pct = Math.round(Number(a.percentage));
+    if (pct > (bestByQuiz.get(a.quiz_id) ?? -1)) bestByQuiz.set(a.quiz_id, pct);
+  }
+
   const items = [
     ...lessonItems.map((q) => ({ ...q, isLesson: true })),
     ...sortedQuizzes.map((q) => ({ ...q, isLesson: false })),
@@ -204,12 +216,17 @@ export default async function QuizzesPage({
             index={index}
             mascot={mascotFor(quiz.title)}
             tint={weekNumber(quiz.title) ?? index}
+            status={
+              bestByQuiz.has(quiz.id)
+                ? { done: true, best: bestByQuiz.get(quiz.id) ?? 0 }
+                : { done: false }
+            }
             title={quiz.title}
             description={quiz.description}
             level={quiz.level}
             meta={quiz.time_limit_minutes ? "Suggested time: " + quiz.time_limit_minutes + " min" : null}
             href={quiz.isLesson ? "/lessons/" + quiz.slug : "/quizzes/" + quiz.slug}
-            cta={quiz.isLesson ? "Study now →" : "Start quiz"}
+            cta={quiz.isLesson ? "Study now →" : bestByQuiz.has(quiz.id) ? "Play again" : "Start quiz"}
           />
         ))}
       </div>
