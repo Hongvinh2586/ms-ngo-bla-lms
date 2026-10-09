@@ -221,24 +221,29 @@ export function Stars({ count }: { count: number }) {
   );
 }
 
-/** Encouraging message for a score (always positive for young learners). */
+/**
+ * Encouraging message for a score (always positive for young learners).
+ * `level` drives the confetti: 3 = big, 2 = medium, 1 = small, 0 = none.
+ */
 export function praiseFor(percentage: number) {
   if (percentage >= 90) {
-    return { stars: 3, title: "Amazing!", message: "You are a superstar. Keep it up!" };
+    return { stars: 3, level: 3, title: "Amazing!", message: "You are a superstar. Keep it up!" };
   }
   if (percentage >= 70) {
-    return { stars: 2, title: "Great job!", message: "You are getting better every day." };
+    return { stars: 2, level: 2, title: "Good job!", message: "You are getting better every day." };
   }
-  if (percentage >= 40) {
+  if (percentage >= 50) {
     return {
       stars: 1,
-      title: "Good try!",
-      message: "Look at the answers below, then try again to get more stars.",
+      level: 1,
+      title: "Cool!",
+      message: "Nice work. Check the answers below to win more stars next time.",
     };
   }
   return {
     stars: 1,
-    title: "Keep going!",
+    level: 0,
+    title: "Keep trying!",
     message: "Every mistake helps you learn. Read the answers below and try again.",
   };
 }
