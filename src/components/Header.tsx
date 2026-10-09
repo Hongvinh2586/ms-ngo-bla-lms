@@ -54,7 +54,7 @@ export default async function Header() {
 
   return (
     <header className="relative z-50 md:sticky md:top-0 border-b-[3px] border-line bg-surface/95 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent font-display text-xl font-extrabold text-white">
             N
@@ -90,6 +90,9 @@ export default async function Header() {
           )}
           {user ? (
             <>
+              <p className="truncate px-2 pt-2 text-xs font-extrabold uppercase tracking-widest text-ink-faint">
+                Me · {displayName}
+              </p>
               <Link href="/account" className={MOBILE_LINK}>
                 Change password
               </Link>
@@ -107,8 +110,8 @@ export default async function Header() {
           )}
         </MobileMenu>
 
-        <nav className="hidden flex-wrap items-center gap-2 text-base font-extrabold text-ink md:flex">
-          <Link href="/" className="rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white">
+        <nav className="hidden flex-wrap items-center gap-1.5 text-[15px] font-extrabold text-ink md:flex">
+          <Link href="/" className="rounded-full bg-paper-alt px-3.5 py-2 transition-colors hover:bg-accent hover:text-white">
             Home
           </Link>
           {FEATURED_COURSES.map((course) =>
@@ -116,7 +119,7 @@ export default async function Header() {
               <div key={course.category} className="group relative">
                 <Link
                   href="/writing"
-                  className="flex items-center gap-1 rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white"
+                  className="flex items-center gap-1 rounded-full bg-paper-alt px-3.5 py-2 transition-colors hover:bg-accent hover:text-white"
                 >
                   {course.title}
                   <svg
@@ -174,13 +177,13 @@ export default async function Header() {
               <Link
                 key={course.category}
                 href={`/quizzes?category=${course.category}`}
-                className="rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white"
+                className="rounded-full bg-paper-alt px-3.5 py-2 transition-colors hover:bg-accent hover:text-white"
               >
                 {course.title}
               </Link>
             )
           )}
-          <Link href="/results" className="rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white">
+          <Link href="/results" className="rounded-full bg-paper-alt px-3.5 py-2 transition-colors hover:bg-accent hover:text-white">
             My results
           </Link>
           {isAdmin && (
@@ -196,14 +199,41 @@ export default async function Header() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <span className="hidden text-sm text-ink-soft sm:inline">{displayName}</span>
-              <Link
-                href="/account"
-                className="rounded-full border-2 border-line bg-surface px-4 py-2 text-sm font-bold text-ink hover:border-ink-soft transition-colors"
-              >
-                Change password
-              </Link>
-              <SignOutButton />
+              <div className="group relative">
+                <Link
+                  href="/account"
+                  className="flex items-center gap-2 rounded-full border-2 border-line bg-surface py-1.5 pl-2 pr-4 text-[15px] font-extrabold text-ink transition-colors hover:border-ink-soft"
+                >
+                  <span
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-sm text-white"
+                    aria-hidden="true"
+                  >
+                    {(displayName ?? "M").charAt(0).toUpperCase()}
+                  </span>
+                  Me
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    className="mt-px transition-transform group-hover:rotate-180"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                </Link>
+                <div className="invisible absolute right-0 top-full z-20 w-64 pt-3 opacity-0 transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                  <div className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-3 shadow-card">
+                    <p className="truncate px-2 text-sm font-bold text-ink-soft">{displayName}</p>
+                    <Link
+                      href="/account"
+                      className="press rounded-full bg-paper-alt px-3.5 py-2 text-center text-sm font-extrabold text-ink transition-colors hover:bg-accent hover:text-white"
+                    >
+                      Change password
+                    </Link>
+                    <SignOutButton />
+                  </div>
+                </div>
+              </div>
             </>
           ) : (
             <>
