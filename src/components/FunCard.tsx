@@ -102,7 +102,7 @@ export function FunCard({
         </span>
         {level && <span className="level-tag">{level}</span>}
       </div>
-      <h2 className="font-display text-2xl font-extrabold leading-tight text-ink">{title}</h2>
+      <h2 className="font-display text-lg font-extrabold leading-snug text-ink">{title}</h2>
       {description && (
         <p className="text-base font-semibold text-ink-soft">
           {description.split("[[PASSAGE]]")[0].trim()}
@@ -164,7 +164,7 @@ export function FunLink({
           {badge}
         </span>
       )}
-      <h2 className="font-display text-2xl font-extrabold leading-tight text-ink">{title}</h2>
+      <h2 className="font-display text-lg font-extrabold leading-snug text-ink">{title}</h2>
       {description && (
         <p className="flex-grow text-base font-semibold text-ink-soft">{description}</p>
       )}
