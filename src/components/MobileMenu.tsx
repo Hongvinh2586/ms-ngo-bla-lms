@@ -7,7 +7,7 @@ export default function MobileMenu({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative md:hidden">
+    <div className="relative xl:hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
