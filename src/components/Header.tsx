@@ -53,7 +53,7 @@ export default async function Header() {
   }
 
   return (
-    <header className="md:sticky md:top-0 z-50 border-b-[3px] border-line bg-surface/95 backdrop-blur">
+    <header className="relative z-50 md:sticky md:top-0 border-b-[3px] border-line bg-surface/95 backdrop-blur">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent font-display text-xl font-extrabold text-white">
