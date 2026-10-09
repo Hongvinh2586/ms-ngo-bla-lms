@@ -71,9 +71,27 @@ export default async function QuizzesPage({
       folderCounts.set(row.category, (folderCounts.get(row.category) ?? 0) + 1);
     }
   }
+  const weekOf = (t: string) => {
+    const m = /Week\s*(\d+)/i.exec(t);
+    return m ? parseInt(m[1], 10) : 9999;
+  };
+  const partOf = (t: string) => {
+    const x = t.toLowerCase();
+    if (x.includes("vocabulary")) return 0;
+    if (x.includes("language")) return 1;
+    if (x.includes("essay")) return 2;
+    return 3;
+  };
+  // Sort by week number (then Vocabulary / Language / Essay); quizzes without a week keep their original order.
+  const sortedQuizzes = [...(quizzes ?? [])].sort((a, b) => {
+    const wa = weekOf(a.title);
+    const wb = weekOf(b.title);
+    if (wa === 9999 && wb === 9999) return 0;
+    return wa - wb || partOf(a.title) - partOf(b.title) || a.title.localeCompare(b.title);
+  });
   const items = [
     ...lessonItems.map((q) => ({ ...q, isLesson: true })),
-    ...(quizzes ?? []).map((q) => ({ ...q, isLesson: false })),
+    ...sortedQuizzes.map((q) => ({ ...q, isLesson: false })),
   ];
 
   const activeCourse = ALL_COURSES.find((c) => c.category === activeCategory);
