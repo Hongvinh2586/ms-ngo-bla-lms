@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { FEATURED_COURSES, WRITING_SUB_COURSES } from "@/lib/types";
+import { streakOf, type AttemptStat } from "@/lib/badges";
 
 function Svg({ children }: { children: ReactNode }) {
   return (
@@ -141,6 +142,17 @@ export default async function HomePage() {
     }
   }
 
+  // Days in a row the student has practised (shown as a small flame chip).
+  let streak = 0;
+  if (user) {
+    const { data: myAttempts } = await supabase
+      .from("quiz_attempts")
+      .select("quiz_id, percentage, submitted_at")
+      .eq("student_id", user.id)
+      .returns<AttemptStat[]>();
+    streak = streakOf(myAttempts ?? []);
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-6 pb-20 pt-12">
       <section className="flex flex-wrap items-center gap-10">
@@ -155,6 +167,14 @@ export default async function HomePage() {
               </span>
             ))}
           </div>
+          {user && (
+            <p className="mt-3 inline-block rounded-full border-[3px] border-ink bg-white px-4 py-1.5 text-base font-extrabold text-ink shadow-[0_3px_0_#2B3010]">
+              {"\u{1F525}"}{" "}
+              {streak > 0
+                ? streak + (streak === 1 ? " day" : " days") + " in a row. Keep it going!"
+                : "Do a quiz today to start your streak!"}
+            </p>
+          )}
           <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.05] text-ink sm:text-6xl">
             {user
               ? "Hi there! Ready to learn some English today?"
