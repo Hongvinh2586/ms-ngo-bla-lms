@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import Header from "@/components/Header";
+import ClickSound from "@/components/ClickSound";
 import "./globals.css";
 
 const notoSerif = Baloo_2({
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-paper font-body text-ink antialiased">
         <Header />
         <main>{children}</main>
+        <ClickSound />
       </body>
     </html>
   );
