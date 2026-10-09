@@ -68,8 +68,12 @@ async function playSound(level: number): Promise<boolean> {
     const reverb = ctx.createConvolver();
     reverb.buffer = impulse;
     const wet = ctx.createGain();
-    wet.gain.value = 0.35;
-    reverb.connect(wet);
+    wet.gain.value = 0.3;
+    const wetLp = ctx.createBiquadFilter();
+    wetLp.type = "lowpass";
+    wetLp.frequency.value = 3200;
+    reverb.connect(wetLp);
+    wetLp.connect(wet);
     wet.connect(master);
     const noise = ctx.createBuffer(1, rate * 2, rate);
     const nd = noise.getChannelData(0);
@@ -94,19 +98,23 @@ async function playSound(level: number): Promise<boolean> {
       src.buffer = noise;
       const bp = ctx.createBiquadFilter();
       bp.type = "bandpass";
-      bp.frequency.value = 900 + Math.random() * 2600;
-      bp.Q.value = 0.7 + Math.random() * 0.8;
+      bp.frequency.value = 1000 + Math.random() * 1800;
+      bp.Q.value = 1.2 + Math.random() * 1.5;
       const g = ctx.createGain();
       const t0 = ctx.currentTime + start;
       g.gain.setValueAtTime(0.0001, t0);
       g.gain.exponentialRampToValueAtTime(vol, t0 + 0.003);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05 + Math.random() * 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07 + Math.random() * 0.06);
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 4500;
       src.connect(bp);
-      bp.connect(g);
+      bp.connect(lp);
+      lp.connect(g);
       g.connect(master);
       if (toReverb) g.connect(reverb);
       src.start(t0, Math.random() * 1.5);
-      src.stop(t0 + 0.14);
+      src.stop(t0 + 0.18);
     };
     const hat = (start: number, vol: number) => {
       const src = ctx.createBufferSource();
@@ -159,27 +167,8 @@ async function playSound(level: number): Promise<boolean> {
       for (let s = 0; s < dur; s += 0.01) {
         const x = s / dur;
         const env = Math.min(1, x / 0.1) * Math.min(1, (1 - x) / 0.4);
-        if (Math.random() < env * 0.55) clap(start + s, peak * (0.4 + Math.random() * 0.6), Math.random() < 0.5);
+        if (Math.random() < env * 0.3) clap(start + s, peak * (0.4 + Math.random() * 0.6), Math.random() < 0.5);
       }
-      // A steady "crowd" rumble under the claps makes it sound fuller.
-      const src = ctx.createBufferSource();
-      src.buffer = noise;
-      src.loop = true;
-      const bp = ctx.createBiquadFilter();
-      bp.type = "bandpass";
-      bp.frequency.value = 1600;
-      bp.Q.value = 0.4;
-      const g = ctx.createGain();
-      const t0 = ctx.currentTime + start;
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(peak * 0.18, t0 + dur * 0.15);
-      g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
-      src.connect(bp);
-      bp.connect(g);
-      g.connect(master);
-      g.connect(reverb);
-      src.start(t0);
-      src.stop(t0 + dur + 0.1);
     };
 
     const C5 = 523.25, E5 = 659.25, G5 = 783.99, C6 = 1046.5, E6 = 1318.5;
@@ -189,12 +178,12 @@ async function playSound(level: number): Promise<boolean> {
       [C5, E5, G5, C6].forEach((f, i) => tone(f, i * 0.12, 0.28, 0.22, "triangle"));
       [C5, E5, G5, C6].forEach((f) => tone(f, 0.52, 1.0, 0.16, "sine"));
       [C6, E6, C6, E6].forEach((f, i) => tone(f, 0.7 + i * 0.1, 0.25, 0.08, "sine"));
-      applause(0.3, 12, 0.7);
+      applause(0.3, 12, 1.0);
       length = 13;
     } else if (level === 2) {
       // Chime, then medium applause.
       [C5, E5, G5].forEach((f, i) => tone(f, i * 0.13, 0.3, 0.2, "triangle"));
-      applause(0.3, 6.5, 0.35);
+      applause(0.3, 6.5, 0.5);
       length = 7;
     } else if (level === 1) {
       // About 10 seconds of upbeat, motivating music (120 BPM, C - G - Am - F - C).
