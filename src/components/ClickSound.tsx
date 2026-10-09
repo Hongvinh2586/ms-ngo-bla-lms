@@ -110,7 +110,7 @@ export default function ClickSound() {
       onClick={toggle}
       aria-label={on ? "Turn button sounds off" : "Turn button sounds on"}
       title={on ? "Sound on" : "Sound off"}
-      className="fixed bottom-24 left-3 z-20 flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-ink bg-surface text-xl shadow-[0_3px_0_#2B3010] active:translate-y-0.5"
+      className="fixed bottom-3 left-3 z-[5] flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-ink bg-surface text-lg opacity-80 shadow-[0_3px_0_#2B3010] hover:opacity-100 active:translate-y-0.5"
     >
       {on ? "\u{1F50A}" : "\u{1F507}"}
     </button>
