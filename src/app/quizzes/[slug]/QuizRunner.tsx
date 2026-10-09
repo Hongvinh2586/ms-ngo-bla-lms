@@ -10,14 +10,29 @@ interface Props {
   questions: SafeQuestion[];
   /** Lessons only: score just the basic or just the advanced part of the quiz. */
   section?: "basic" | "advanced" | "structures" | "vocabulary";
+  /** Emoji mascot that rides along the progress bar. */
+  mascot?: string;
 }
 
-export default function QuizRunner({ quizId, questions, section }: Props) {
+export default function QuizRunner({ quizId, questions, section, mascot }: Props) {
   const [answers, setAnswers] = useState<StudentAnswers>({});
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const answeredCount = Object.keys(answers).length;
+  const total = questions.length;
+  const pct = total ? (answeredCount / total) * 100 : 0;
+  const starsLit = total === 0 ? 0 : pct >= 100 ? 3 : pct >= 66 ? 2 : pct >= 33 ? 1 : 0;
+  const cheer =
+    answeredCount === 0
+      ? "Let's go!"
+      : answeredCount >= total
+        ? "All answered. Press Submit!"
+        : pct >= 66
+          ? "Almost there!"
+          : pct >= 33
+            ? "Great job, keep going!"
+            : "Nice start!";
 
   function setAnswer(questionId: string, answer: StudentAnswer) {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
@@ -52,26 +67,54 @@ export default function QuizRunner({ quizId, questions, section }: Props) {
         </p>
       )}
 
-      <div className="sticky bottom-3 z-10 flex flex-col gap-3 rounded-xl2 border-[3px] border-ink bg-tint-butter px-6 py-4 shadow-[0_5px_0_#2B3010]">
-        <div className="h-3 overflow-hidden rounded-full bg-white/70">
-          <div
-            className="h-full rounded-full bg-accent transition-all"
-            style={{
-              width: (questions.length ? (answeredCount / questions.length) * 100 : 0) + "%",
-            }}
-          />
+      <div className="sticky bottom-3 z-10 flex flex-col gap-3 rounded-xl2 border-[3px] border-ink bg-tint-butter px-5 pb-4 pt-3 shadow-[0_5px_0_#2B3010]">
+        <div className="relative pt-8">
+          <span
+            className="mascot-bob absolute top-0 -translate-x-1/2 text-3xl leading-none transition-all duration-500"
+            style={{ left: Math.min(Math.max(pct, 5), 95) + "%" }}
+            aria-hidden="true"
+          >
+            {mascot ?? "\u{1F41D}"}
+          </span>
+          <div className="h-4 overflow-hidden rounded-full border-2 border-ink bg-white/80">
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: pct + "%" }}
+            />
+          </div>
         </div>
-        <div className="flex items-center justify-between gap-3">
-        <span className="text-base font-extrabold text-ink">
-          {answeredCount} of {questions.length} answered
-        </span>
-        <button
-          onClick={handleSubmit}
-          disabled={isPending}
-          className="rounded-full bg-accent px-7 py-3 text-base font-extrabold text-white shadow-[0_4px_0_#3E4A12] hover:bg-accent-strong disabled:opacity-60 transition-colors"
-        >
-          {isPending ? "Submitting…" : "Submit quiz"}
-        </button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-base font-extrabold text-ink">
+              {answeredCount} of {total} answered
+            </p>
+            <p className="text-sm font-bold text-ink-soft">{cheer}</p>
+          </div>
+          <div className="flex items-center gap-1" aria-label={starsLit + " of 3 stars"}>
+            {[0, 1, 2].map((i) => (
+              <svg
+                key={i + "-" + (i < starsLit ? "on" : "off")}
+                width="30"
+                height="30"
+                viewBox="0 0 24 24"
+                fill={i < starsLit ? "#FFC93C" : "#FFFFFF"}
+                stroke="#2B3010"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+                className={i < starsLit ? "star-lit" : ""}
+                aria-hidden="true"
+              >
+                <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />
+              </svg>
+            ))}
+          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={isPending}
+            className="press rounded-full bg-accent px-9 py-4 text-lg font-extrabold text-white shadow-[0_5px_0_#3E4A12] transition-colors hover:bg-accent-strong disabled:opacity-60"
+          >
+            {isPending ? "Submitting…" : "Submit quiz"}
+          </button>
         </div>
       </div>
     </div>
@@ -229,7 +272,7 @@ function MultipleChoiceInput({
       {options.map((option, i) => (
         <label
           key={i}
-          className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base font-semibold transition-colors ${
+          className={`press flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base font-semibold transition-colors ${
             selectedIndex === i
               ? "border-accent bg-accent-soft text-ink"
               : "border-line bg-white text-ink hover:border-accent"
@@ -265,7 +308,7 @@ function TrueFalseInput({
           key={String(option)}
           type="button"
           onClick={() => onChange({ type: "true_false", value: option })}
-          className={`rounded-full border-2 px-7 py-2.5 text-base font-extrabold transition-colors ${
+          className={`press rounded-full border-2 px-8 py-3 text-lg font-extrabold shadow-[0_3px_0_#CBD1A0] transition-colors ${
             value === option
               ? "border-accent bg-accent-soft text-ink"
               : "border-line bg-white text-ink hover:border-accent"
