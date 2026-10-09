@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "@/components/SignOutButton";
+import MobileMenu from "@/components/MobileMenu";
 import { FEATURED_COURSES, WRITING_SUB_COURSES } from "@/lib/types";
+
+const MOBILE_LINK =
+  "press rounded-full bg-paper-alt px-4 py-3 text-base font-extrabold text-ink transition-colors hover:bg-accent hover:text-white";
 
 export default async function Header() {
   const supabase = createClient();
@@ -63,7 +67,47 @@ export default async function Header() {
           </span>
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-2 text-base font-extrabold text-ink">
+        <MobileMenu>
+          <Link href="/" className={MOBILE_LINK}>
+            Home
+          </Link>
+          {FEATURED_COURSES.map((course) => (
+            <Link
+              key={course.category}
+              href={course.category === "writing" ? "/writing" : "/quizzes?category=" + course.category}
+              className={MOBILE_LINK}
+            >
+              {course.title}
+            </Link>
+          ))}
+          <Link href="/results" className={MOBILE_LINK}>
+            My results
+          </Link>
+          {isAdmin && (
+            <Link href="/admin" className={MOBILE_LINK}>
+              Admin
+            </Link>
+          )}
+          {user ? (
+            <>
+              <Link href="/account" className={MOBILE_LINK}>
+                Change password
+              </Link>
+              <SignOutButton />
+            </>
+          ) : (
+            <>
+              <Link href="/login" className={MOBILE_LINK}>
+                Log in
+              </Link>
+              <Link href="/signup" className={MOBILE_LINK}>
+                Sign up
+              </Link>
+            </>
+          )}
+        </MobileMenu>
+
+        <nav className="hidden flex-wrap items-center gap-2 text-base font-extrabold text-ink md:flex">
           <Link href="/" className="rounded-full bg-paper-alt px-4 py-2 transition-colors hover:bg-accent hover:text-white">
             Home
           </Link>
@@ -149,7 +193,7 @@ export default async function Header() {
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
               <span className="hidden text-sm text-ink-soft sm:inline">{displayName}</span>
