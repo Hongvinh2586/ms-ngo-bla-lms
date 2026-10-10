@@ -4,6 +4,7 @@ import { toSafeQuestionData } from "@/lib/grading";
 import type { QuestionRow, QuizRow, SafeQuestion } from "@/lib/types";
 import QuizRunner from "./QuizRunner";
 import { mascotFor } from "@/lib/mascot";
+import { allowedFolders, canSee } from "@/lib/classAccess";
 
 export default async function TakeQuizPage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
@@ -17,11 +18,17 @@ export default async function TakeQuizPage({ params }: { params: { slug: string 
 
   const { data: quiz } = await supabase
     .from("quizzes")
-    .select("id, slug, title, description, level, time_limit_minutes")
+    .select("id, slug, title, description, level, category, time_limit_minutes")
     .eq("slug", params.slug)
     .single<QuizRow>();
 
   if (!quiz) {
+    notFound();
+  }
+
+  // Students limited to certain class folders cannot open quizzes from other folders.
+  const allowed = await allowedFolders(supabase, user);
+  if (!canSee(allowed, quiz.category)) {
     notFound();
   }
 
