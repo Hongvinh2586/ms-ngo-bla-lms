@@ -213,8 +213,8 @@ export async function removeAllowedStudent(email: string): Promise<ActionResult>
 /**
  * Limits a student to the given class folders (e.g. only C15D6). An empty list
  * removes the limit, so the student sees everything again. Stored in the
- * account's app_metadata (only the server can change it, so a student cannot
- * edit their own); needs SUPABASE_SERVICE_ROLE_KEY like inviteStudent().
+ * student_classes table (see supabase/migration_006_student_classes.sql), which
+ * only admins can write.
  */
 export async function setStudentClasses(profileId: string, classes: string[]): Promise<ActionResult> {
   const supabase = createClient();
@@ -236,20 +236,19 @@ export async function setStudentClasses(profileId: string, classes: string[]): P
   const valid = new Set(CLASS_FOLDERS.map((f) => f.key));
   const clean = classes.filter((c) => valid.has(c));
 
-  try {
-    const admin = createAdminClient();
-    const { data: existing, error: getError } = await admin.auth.admin.getUserById(profileId);
-    if (getError || !existing?.user) {
-      return { ok: false, error: getError?.message ?? "Không tìm thấy tài khoản này." };
-    }
-    const { error } = await admin.auth.admin.updateUserById(profileId, {
-      app_metadata: { ...(existing.user.app_metadata ?? {}), classes: clean },
-    });
-    if (error) {
-      return { ok: false, error: error.message };
-    }
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Could not save the classes." };
+  const { error } = await supabase
+    .from("student_classes")
+    .upsert(
+      { student_id: profileId, classes: clean, updated_at: new Date().toISOString() },
+      { onConflict: "student_id" }
+    );
+  if (error) {
+    return {
+      ok: false,
+      error: error.message.toLowerCase().includes("does not exist")
+        ? "Chưa có bảng student_classes — cần chạy file supabase/migration_006_student_classes.sql trong Supabase SQL Editor (1 lần)."
+        : error.message,
+    };
   }
 
   revalidatePath("/admin/students");
