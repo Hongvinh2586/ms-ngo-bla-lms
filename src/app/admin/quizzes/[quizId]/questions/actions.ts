@@ -155,7 +155,13 @@ export async function deleteQuestion(questionId: string, quizId: string): Promis
 // Bulk import — paste a whole ready-made multiple-choice test in one go.
 // ---------------------------------------------------------------------------
 
-type ParsedBulkQuestion = { prompt: string; options: string[]; correctIndex: number };
+type ParsedBulkQuestion = {
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  /** Set for typed-answer questions (no A/B/C/D options): every accepted full answer. */
+  typedAnswers?: string[];
+};
 
 /**
  * Parses text pasted into BulkImportForm. The documented shape is one blank
@@ -190,6 +196,14 @@ type ParsedBulkQuestion = { prompt: string; options: string[]; correctIndex: num
 function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
   const answerLinePattern = /^(?:đáp\s*án|dap\s*an|answer|correct)\s*[:\-]?\s*([A-Da-d])\b/i;
   const numberedStartPattern = /^\d+[.)]\s*\S/;
+  const answerTextPattern = /^(?:đáp\s*án|dap\s*an|answer|correct)\s*[:\-]\s*(.+)$/i;
+  const optionPattern = /^([A-Da-d])[.)]\s*(.+)$/;
+  // "Exercise 6. Put the chunks in order." — a numbered section title; the words after the number are the instruction.
+  const numberedHeadingPattern = /^(?:exercise|part|section|task|unit|lesson|test|quiz|bài|phần|dạng)\s*(?:\d+|[ivx]+)\b\s*[.:\-–)]?\s*(.*)$/i;
+  const looseHeadingPattern = /^(?:exercise|part|section|task|unit|lesson|test|quiz|bài|phần|dạng)\b/i;
+  const instructionVerbPattern =
+    /^(?:Choose|Read|Match|Write|Complete|Combine|Use|Fill|Rewrite|Add|Make|Decide|Put|Change|Correct|Find|Select|Circle|Order|Answer|Look|Listen|Identify|Rearrange|Join|Transform|Paraphrase|Finish|Unscramble|Mark|Replace|Insert|Underline|Pick)\b/i;
+  const HEADING_MARK = "\u0001";
 
   const blocks: string[][] = [];
   let current: string[] = [];
@@ -207,6 +221,17 @@ function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
       continue;
     }
 
+    const headingMatch = line.match(numberedHeadingPattern);
+    if (headingMatch) {
+      if (current.length > 0) {
+        blocks.push(current);
+        current = [];
+        currentHasAnswer = false;
+      }
+      blocks.push([HEADING_MARK + headingMatch[1].trim()]);
+      continue;
+    }
+
     if (currentHasAnswer && current.length > 0 && numberedStartPattern.test(line)) {
       blocks.push(current);
       current = [];
@@ -214,7 +239,7 @@ function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
     }
 
     current.push(line);
-    if (answerLinePattern.test(line)) {
+    if (answerTextPattern.test(line)) {
       currentHasAnswer = true;
     }
   }
@@ -222,13 +247,38 @@ function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
     blocks.push(current);
   }
 
-  // A lone line such as "Exercise 2: Choose the correct main verb" is a section title, not a
-  // question — skip it instead of reporting an error.
-  const headingPattern = /^(?:exercise|part|section|task|unit|lesson|test|quiz|bài|phần|dạng)\b/i;
-  const questionBlocks = blocks.filter((lines) => !(lines.length === 1 && headingPattern.test(lines[0])));
+  let sectionInstruction = "";
+  let questionCounter = 0;
+  const withInstruction = (p: string) => (sectionInstruction ? sectionInstruction + "\n" + p : p);
 
-  return questionBlocks.map((lines, blockIndex) => {
-    const questionNumber = blockIndex + 1;
+  return blocks.flatMap((lines) => {
+    // Section title such as "Exercise 6. Put the chunks in order." — its text becomes the instruction line.
+    if (lines.length === 1 && lines[0].startsWith(HEADING_MARK)) {
+      const text = lines[0].slice(1).trim();
+      sectionInstruction = instructionVerbPattern.test(text) ? (/[.:]$/.test(text) ? text : text + ".") : "";
+      return [];
+    }
+    // A lone title line without a number (for example "Lesson review") is skipped.
+    if (lines.length === 1 && looseHeadingPattern.test(lines[0])) {
+      return [];
+    }
+    questionCounter += 1;
+    const questionNumber = questionCounter;
+
+    // Typed-answer question: a question line (or several) followed by "Đáp án: <full answer>" and no A/B/C/D options.
+    const answerIndex = lines.findIndex((l) => answerTextPattern.test(l));
+    const hasOptions = lines.some((l, idx) => idx > 0 && optionPattern.test(l));
+    if (!hasOptions && answerIndex > 0) {
+      const answerText = (lines[answerIndex].match(answerTextPattern)?.[1] ?? "").trim();
+      if (answerText && !/^[A-Da-d]$/.test(answerText)) {
+        const stem = lines.slice(0, answerIndex).join("\n");
+        const stemMatch = stem.match(/^\d+[.)]\s*([\s\S]+)$/);
+        const typedPrompt = (stemMatch ? stemMatch[1] : stem).trim();
+        const withoutDot = answerText.replace(/[.!?]+$/, "").trim();
+        const variants = Array.from(new Set([answerText, withoutDot, withoutDot + "."])).filter(Boolean);
+        return [{ prompt: withInstruction(typedPrompt), options: [], correctIndex: 0, typedAnswers: variants }];
+      }
+    }
 
     if (lines.length < 3) {
       throw new Error(
@@ -280,7 +330,7 @@ function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
       );
     }
 
-    return { prompt, options: optionEntries.map((o) => o.text), correctIndex };
+    return [{ prompt: withInstruction(prompt), options: optionEntries.map((o) => o.text), correctIndex }];
   });
 }
 
@@ -322,11 +372,13 @@ export async function bulkCreateQuestions(
   const rows = parsed.map((q, i) => ({
     quiz_id: quizId,
     order_index: startOrderIndex + i,
-    type: "multiple_choice" as const,
+    type: q.typedAnswers ? ("fill_blank" as const) : ("multiple_choice" as const),
     prompt: q.prompt,
     explanation: null,
     points: 1,
-    data: { options: q.options, correctIndex: q.correctIndex },
+    data: q.typedAnswers
+      ? { acceptedAnswers: q.typedAnswers }
+      : { options: q.options, correctIndex: q.correctIndex },
   }));
 
   const { error } = await supabase.from("questions").insert(rows);
