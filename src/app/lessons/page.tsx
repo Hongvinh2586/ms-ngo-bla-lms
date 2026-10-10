@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { QuizRow } from "@/lib/types";
 import { FunCard } from "@/components/FunCard";
+import { allowedFolders, canSee } from "@/lib/classAccess";
 
 export default async function LessonsPage() {
   const supabase = createClient();
@@ -14,15 +15,18 @@ export default async function LessonsPage() {
     redirect("/login");
   }
 
-  const { data: lessons, error } = await supabase
+  const allowed = await allowedFolders(supabase, user);
+
+  const { data: lessonRows, error } = await supabase
     .from("quizzes")
-    .select("id, slug, title, level")
+    .select("id, slug, title, level, category")
     .eq("is_lesson", true)
     .eq("is_published", true)
     .or("category.is.null,and(category.not.like.vocabulary*,category.neq.writing-c15d6)")
     .order("order_index", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
     .returns<QuizRow[]>();
+  const lessons = (lessonRows ?? []).filter((l) => canSee(allowed, l.category));
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-14">
