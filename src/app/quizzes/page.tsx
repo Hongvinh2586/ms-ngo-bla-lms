@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ALL_COURSES, VOCAB_FOLDERS, WRITING_LESSON_FOLDERS, type QuizRow } from "@/lib/types";
 import { FunCard, FunLink } from "@/components/FunCard";
 import { mascotFor, weekNumber } from "@/lib/mascot";
+import { allowedFolders, canSee } from "@/lib/classAccess";
 
 export default async function QuizzesPage({
   searchParams,
@@ -21,6 +22,12 @@ export default async function QuizzesPage({
 
   const activeCategory = searchParams.category;
 
+  // Students limited to certain class folders only see those folders.
+  const allowed = await allowedFolders(supabase, user);
+  if (activeCategory && !canSee(allowed, activeCategory)) {
+    redirect("/quizzes");
+  }
+
     let query = supabase
     .from("quizzes")
     .select("id, slug, title, description, level, category, time_limit_minutes")
@@ -32,7 +39,8 @@ export default async function QuizzesPage({
     query = query.eq("category", activeCategory);
   }
 
-  const { data: quizzes, error } = await query.returns<QuizRow[]>();
+  const { data: quizRows, error } = await query.returns<QuizRow[]>();
+  const quizzes = (quizRows ?? []).filter((q) => canSee(allowed, q.category));
 
   // Vocabulary Builder is a folder of books (VOCAB_FOLDERS). The hub page lists
   // the books as cards; opening a book lists that book's lessons.
@@ -151,7 +159,7 @@ export default async function QuizzesPage({
         >
           All
         </Link>
-        {ALL_COURSES.filter((c) => !VOCAB_FOLDERS.some((f) => f.category === c.category)).map((course) => (
+        {ALL_COURSES.filter((c) => !VOCAB_FOLDERS.some((f) => f.category === c.category) && canSee(allowed, c.category)).map((course) => (
           <Link
             key={course.category}
             href={`/quizzes?category=${course.category}`}
