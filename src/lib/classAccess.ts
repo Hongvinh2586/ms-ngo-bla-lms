@@ -22,13 +22,16 @@ export function folderOf(category: string | null | undefined): string {
   return KNOWN_FOLDERS.has(category) ? category : "lessons";
 }
 
-/** null = unrestricted. Otherwise the list of folder keys the student may open. */
+/** null = unrestricted. Otherwise the list of folder keys the student may open.
+ *  Assignments live in the student_classes table (supabase/migration_006_student_classes.sql);
+ *  if that table does not exist yet, nobody is restricted. */
 export async function allowedFolders(supabase: SupabaseClient, user: User): Promise<string[] | null> {
-  const meta = (user.app_metadata ?? {}) as { classes?: unknown };
-  const classes = Array.isArray(meta.classes)
-    ? meta.classes.filter((c): c is string => typeof c === "string")
-    : [];
-  if (classes.length === 0) return null;
+  const { data, error } = await supabase
+    .from("student_classes")
+    .select("classes")
+    .eq("student_id", user.id)
+    .maybeSingle<{ classes: string[] | null }>();
+  if (error || !data || !Array.isArray(data.classes) || data.classes.length === 0) return null;
 
   // Admins and teachers are never restricted.
   const { data: profile } = await supabase
@@ -38,7 +41,7 @@ export async function allowedFolders(supabase: SupabaseClient, user: User): Prom
     .single<{ role: string }>();
   if (profile?.role && profile.role !== "student") return null;
 
-  return classes;
+  return data.classes;
 }
 
 export function canSee(allowed: string[] | null, category: string | null | undefined): boolean {
