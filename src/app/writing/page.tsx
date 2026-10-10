@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { WRITING_SUB_COURSES } from "@/lib/types";
 import { FunLink } from "@/components/FunCard";
+import { allowedFolders, canSee } from "@/lib/classAccess";
 
 /** "Writing Courses" landing page — one level below the homepage's Writing
  *  Courses card. Shows the A2 / B1 / B2 sub-courses (quizzes) plus Lessons,
@@ -16,6 +17,8 @@ export default async function WritingCoursesPage() {
   if (!user) {
     redirect("/login");
   }
+
+  const allowed = await allowedFolders(supabase, user);
 
   const countsByCategory = new Map<string, number>();
   const { data: quizCategories } = await supabase
@@ -45,7 +48,7 @@ export default async function WritingCoursesPage() {
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {WRITING_SUB_COURSES.map((course, courseIndex) => {
+        {WRITING_SUB_COURSES.filter((c) => canSee(allowed, c.category)).map((course, courseIndex) => {
           const count = countsByCategory.get(course.category) ?? 0;
           return (
             <FunLink
@@ -61,6 +64,7 @@ export default async function WritingCoursesPage() {
           );
         })}
 
+        {canSee(allowed, "lessons") && (
         <FunLink
           index={WRITING_SUB_COURSES.length}
           href="/lessons"
@@ -70,6 +74,7 @@ export default async function WritingCoursesPage() {
           highlight={(lessonCount ?? 0) > 0}
           cta="Open"
         />
+        )}
       </div>
     </div>
   );
