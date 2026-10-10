@@ -1,9 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
 import type { AllowedStudentRow, ProfileRow } from "@/lib/types";
 import RoleSelect from "./RoleSelect";
+import ClassPicker from "./ClassPicker";
+import { createAdminClient } from "@/lib/supabase/admin";
 import InviteStudentForm from "./InviteStudentForm";
 import AllowedStudentsForm from "./AllowedStudentsForm";
 import RemoveAllowedStudentButton from "./RemoveAllowedStudentButton";
+
+/** Each account's class folders (stored in the auth user's app_metadata). */
+async function loadClasses(): Promise<{ map: Map<string, string[]>; error: string | null }> {
+  const map = new Map<string, string[]>();
+  try {
+    const admin = createAdminClient();
+    for (let page = 1; page <= 10; page++) {
+      const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+      if (error) return { map, error: error.message };
+      for (const u of data.users) {
+        const c = (u.app_metadata as { classes?: unknown } | undefined)?.classes;
+        if (Array.isArray(c)) {
+          map.set(u.id, c.filter((x): x is string => typeof x === "string"));
+        }
+      }
+      if (data.users.length < 200) break;
+    }
+  } catch (err) {
+    return { map, error: err instanceof Error ? err.message : String(err) };
+  }
+  return { map, error: null };
+}
 
 export default async function AdminStudentsPage() {
   const supabase = createClient();
@@ -25,6 +49,8 @@ export default async function AdminStudentsPage() {
     .select("email, full_name, created_at")
     .order("created_at", { ascending: false })
     .returns<AllowedStudentRow[]>();
+
+  const { map: classesById, error: classesError } = await loadClasses();
 
   return (
     <div>
@@ -106,6 +132,15 @@ export default async function AdminStudentsPage() {
       <p className="mt-10 text-xs font-bold uppercase tracking-widest text-ink-faint">
         Tài khoản đã đăng ký ({profiles?.length ?? 0})
       </p>
+      <p className="mt-1 text-xs text-ink-soft">
+        Bấm chọn lớp/folder mà từng học sinh được vào. Học sinh chưa chọn lớp nào thì thấy tất cả như
+        bình thường; admin và teacher luôn thấy tất cả.
+      </p>
+      {classesError && (
+        <p className="mt-3 whitespace-pre-wrap rounded-lg border border-bad bg-bad-soft px-3.5 py-2.5 text-sm text-bad">
+          Chưa lưu được lớp cho học sinh: {classesError}
+        </p>
+      )}
       <div className="mt-3 flex flex-col gap-2">
         {profiles?.map((profile) => (
           <div
@@ -124,6 +159,9 @@ export default async function AdminStudentsPage() {
               role={profile.role}
               disabled={profile.id === currentUser?.id}
             />
+            {profile.role === "student" && !classesError && (
+              <ClassPicker profileId={profile.id} initial={classesById.get(profile.id) ?? []} />
+            )}
           </div>
         ))}
 
