@@ -96,6 +96,19 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
         </p>
       )}
 
+      {secondsLeft !== null && (
+        <div
+          className={
+            "fixed bottom-[9.5rem] right-3 z-20 rounded-full border-[3px] border-ink px-4 py-2 text-lg font-extrabold tabular-nums shadow-[0_4px_0_#2B3010] sm:bottom-32 " +
+            (timeUp ? "bg-bad text-white" : timeLow ? "animate-pulse bg-bad-soft text-bad" : "bg-white text-ink")
+          }
+          role="timer"
+          aria-label={timeUp ? "Time is up" : "Time left " + formatClock(secondsLeft)}
+        >
+          {timeUp ? "Time's up!" : "\u23F0 " + formatClock(secondsLeft) + " left"}
+        </div>
+      )}
+
       <div className="sticky bottom-3 z-10 flex flex-col gap-2 rounded-xl2 border-[3px] border-ink bg-tint-butter px-4 pb-3 pt-2 shadow-[0_5px_0_#2B3010]">
         <div className="flex items-end gap-3">
           <div className="relative min-w-0 flex-1 pt-7">
@@ -113,18 +126,6 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
               />
             </div>
           </div>
-          {secondsLeft !== null && (
-            <div
-              className={
-                "shrink-0 rounded-full border-2 border-ink px-3 py-1 text-sm font-extrabold tabular-nums " +
-                (timeUp ? "bg-bad text-white" : timeLow ? "animate-pulse bg-bad-soft text-bad" : "bg-white text-ink")
-              }
-              role="timer"
-              aria-label={timeUp ? "Time is up" : "Time left " + formatClock(secondsLeft)}
-            >
-              {timeUp ? "Time's up!" : "\u23F0 " + formatClock(secondsLeft)}
-            </div>
-          )}
           <div className="flex shrink-0 items-center" aria-label={starsLit + " of 3 stars"}>
             {[0, 1, 2].map((i) => (
               <svg
