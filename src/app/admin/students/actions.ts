@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { CLASS_FOLDERS } from "@/lib/classAccess";
 
 /** Server Actions must never `throw` a "normal" error: in a production
  *  build, Next.js redacts any thrown error's message before it reaches the
@@ -203,6 +204,52 @@ export async function removeAllowedStudent(email: string): Promise<ActionResult>
 
   if (error) {
     return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/admin/students");
+  return { ok: true };
+}
+
+/**
+ * Limits a student to the given class folders (e.g. only C15D6). An empty list
+ * removes the limit, so the student sees everything again. Stored in the
+ * account's app_metadata (only the server can change it, so a student cannot
+ * edit their own); needs SUPABASE_SERVICE_ROLE_KEY like inviteStudent().
+ */
+export async function setStudentClasses(profileId: string, classes: string[]): Promise<ActionResult> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { ok: false, error: "You must be logged in." };
+  }
+  const { data: me } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single<{ role: string }>();
+  if (me?.role !== "admin") {
+    return { ok: false, error: "Only admins can change a student's classes." };
+  }
+
+  const valid = new Set(CLASS_FOLDERS.map((f) => f.key));
+  const clean = classes.filter((c) => valid.has(c));
+
+  try {
+    const admin = createAdminClient();
+    const { data: existing, error: getError } = await admin.auth.admin.getUserById(profileId);
+    if (getError || !existing?.user) {
+      return { ok: false, error: getError?.message ?? "Không tìm thấy tài khoản này." };
+    }
+    const { error } = await admin.auth.admin.updateUserById(profileId, {
+      app_metadata: { ...(existing.user.app_metadata ?? {}), classes: clean },
+    });
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Could not save the classes." };
   }
 
   revalidatePath("/admin/students");
