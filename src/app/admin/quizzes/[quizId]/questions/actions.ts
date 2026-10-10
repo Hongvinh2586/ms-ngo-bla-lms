@@ -222,7 +222,12 @@ function parseBulkMultipleChoice(raw: string): ParsedBulkQuestion[] {
     blocks.push(current);
   }
 
-  return blocks.map((lines, blockIndex) => {
+  // A lone line such as "Exercise 2: Choose the correct main verb" is a section title, not a
+  // question — skip it instead of reporting an error.
+  const headingPattern = /^(?:exercise|part|section|task|unit|lesson|test|quiz|bài|phần|dạng)\b/i;
+  const questionBlocks = blocks.filter((lines) => !(lines.length === 1 && headingPattern.test(lines[0])));
+
+  return questionBlocks.map((lines, blockIndex) => {
     const questionNumber = blockIndex + 1;
 
     if (lines.length < 3) {
