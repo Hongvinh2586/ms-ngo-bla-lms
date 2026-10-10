@@ -2,29 +2,30 @@ import { createClient } from "@/lib/supabase/server";
 import type { AllowedStudentRow, ProfileRow } from "@/lib/types";
 import RoleSelect from "./RoleSelect";
 import ClassPicker from "./ClassPicker";
-import { createAdminClient } from "@/lib/supabase/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import InviteStudentForm from "./InviteStudentForm";
 import AllowedStudentsForm from "./AllowedStudentsForm";
 import RemoveAllowedStudentButton from "./RemoveAllowedStudentButton";
 
-/** Each account's class folders (stored in the auth user's app_metadata). */
-async function loadClasses(): Promise<{ map: Map<string, string[]>; error: string | null }> {
+/** Each student's class folders, from the student_classes table. */
+async function loadClasses(
+  supabase: SupabaseClient
+): Promise<{ map: Map<string, string[]>; error: string | null }> {
   const map = new Map<string, string[]>();
-  try {
-    const admin = createAdminClient();
-    for (let page = 1; page <= 10; page++) {
-      const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
-      if (error) return { map, error: error.message };
-      for (const u of data.users) {
-        const c = (u.app_metadata as { classes?: unknown } | undefined)?.classes;
-        if (Array.isArray(c)) {
-          map.set(u.id, c.filter((x): x is string => typeof x === "string"));
-        }
-      }
-      if (data.users.length < 200) break;
-    }
-  } catch (err) {
-    return { map, error: err instanceof Error ? err.message : String(err) };
+  const { data, error } = await supabase
+    .from("student_classes")
+    .select("student_id, classes")
+    .returns<{ student_id: string; classes: string[] | null }[]>();
+  if (error) {
+    return {
+      map,
+      error: error.message.toLowerCase().includes("does not exist")
+        ? "cần chạy file supabase/migration_006_student_classes.sql trong Supabase SQL Editor trước (chỉ cần chạy 1 lần)."
+        : error.message,
+    };
+  }
+  for (const row of data ?? []) {
+    map.set(row.student_id, row.classes ?? []);
   }
   return { map, error: null };
 }
@@ -50,7 +51,7 @@ export default async function AdminStudentsPage() {
     .order("created_at", { ascending: false })
     .returns<AllowedStudentRow[]>();
 
-  const { map: classesById, error: classesError } = await loadClasses();
+  const { map: classesById, error: classesError } = await loadClasses(supabase);
 
   return (
     <div>
@@ -138,7 +139,7 @@ export default async function AdminStudentsPage() {
       </p>
       {classesError && (
         <p className="mt-3 whitespace-pre-wrap rounded-lg border border-bad bg-bad-soft px-3.5 py-2.5 text-sm text-bad">
-          Chưa lưu được lớp cho học sinh: {classesError}
+          Chưa dùng được chức năng chọn lớp: {classesError}
         </p>
       )}
       <div className="mt-3 flex flex-col gap-2">
