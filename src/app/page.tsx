@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { FEATURED_COURSES, WRITING_SUB_COURSES } from "@/lib/types";
 import { streakOf, type AttemptStat } from "@/lib/badges";
+import { allowedFolders, canSee } from "@/lib/classAccess";
 
 function Svg({ children }: { children: ReactNode }) {
   return (
@@ -121,6 +122,9 @@ export default async function HomePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Students limited to certain class folders only see those folders' cards.
+  const allowed = user ? await allowedFolders(supabase, user) : null;
 
   // Count published quizzes per course category so each card can show
   // whether it already has quizzes or is still "coming soon". The
@@ -261,10 +265,16 @@ export default async function HomePage() {
             "mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 " + (user ? "lg:grid-cols-4" : "lg:grid-cols-3")
           }
         >
-          {FEATURED_COURSES.map((course) => {
+          {FEATURED_COURSES.filter(
+            (course) =>
+              allowed === null ||
+              (course.category === "writing"
+                ? allowed.some((k) => k.startsWith("writing-") || k === "lessons")
+                : canSee(allowed, course.category))
+          ).map((course) => {
             const isWritingParent = course.category === "writing";
             const count = isWritingParent
-              ? WRITING_SUB_COURSES.reduce(
+              ? WRITING_SUB_COURSES.filter((sub) => canSee(allowed, sub.category)).reduce(
                   (sum, sub) => sum + (countsByCategory.get(sub.category) ?? 0),
                   0
                 )
