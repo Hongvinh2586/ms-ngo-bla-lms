@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { toSafeQuestionData } from "@/lib/grading";
 import type { QuestionRow, QuizRow, SafeQuestion } from "@/lib/types";
 import LessonTabs from "./LessonTabs";
+import { allowedFolders, canSee } from "@/lib/classAccess";
 
 // Questions numbered 1000 and up are the lesson's "Advanced Practice" (B2-B2+).
 const ADVANCED_FROM = 1000;
@@ -25,6 +26,12 @@ export default async function LessonPage({ params }: { params: { slug: string } 
     .single<QuizRow>();
 
   if (!lesson) {
+    notFound();
+  }
+
+  // Students limited to certain class folders cannot open lessons from other folders.
+  const allowed = await allowedFolders(supabase, user);
+  if (!canSee(allowed, lesson.category)) {
     notFound();
   }
 
