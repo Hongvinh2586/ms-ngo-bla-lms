@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { gradeAnswer } from "@/lib/grading";
+import { allowedFolders, canSee } from "@/lib/classAccess";
 import type { QuestionRow, StudentAnswers } from "@/lib/types";
 
 // Lessons keep their "Advanced Practice" questions in the same quiz, numbered from
@@ -26,6 +27,19 @@ export async function submitQuizAttempt(
 
   if (!user) {
     redirect("/login");
+  }
+
+  // Students limited to certain class folders cannot submit quizzes from other folders.
+  const allowed = await allowedFolders(supabase, user);
+  if (allowed !== null) {
+    const { data: quizRow } = await supabase
+      .from("quizzes")
+      .select("category")
+      .eq("id", quizId)
+      .single<{ category: string | null }>();
+    if (!quizRow || !canSee(allowed, quizRow.category)) {
+      throw new Error("You do not have access to this quiz.");
+    }
   }
 
   const { data: questions, error: questionsError } = await supabase
