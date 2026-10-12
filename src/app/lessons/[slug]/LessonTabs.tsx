@@ -341,6 +341,7 @@ export default function LessonTabs({
   grammarNotes,
   questions,
   advancedQuestions = [],
+  plainPractice = false,
 }: {
   quizId: string;
   quizSlug: string;
@@ -348,6 +349,8 @@ export default function LessonTabs({
   grammarNotes: string[] | null;
   questions: SafeQuestion[];
   advancedQuestions?: SafeQuestion[];
+  /** IELTS lessons: show "Practice 1" / "Practice 2" without any level wording. */
+  plainPractice?: boolean;
 }) {
   const hasAdvanced = advancedQuestions.length > 0;
 
@@ -369,9 +372,9 @@ export default function LessonTabs({
     ...(grammarNotes && grammarNotes.length > 0
       ? [{ key: "grammar" as Tab, label: "Structures", count: grammarNotes.length }]
       : []),
-    { key: "practice" as Tab, label: "Practice", count: questions.length },
+    { key: "practice" as Tab, label: plainPractice ? "Practice 1" : "Practice", count: questions.length },
     ...(hasAdvanced
-      ? [{ key: "advanced" as Tab, label: "Advanced Practice", count: advancedQuestions.length }]
+      ? [{ key: "advanced" as Tab, label: plainPractice ? "Practice 2" : "Advanced Practice", count: advancedQuestions.length }]
       : []),
   ];
 
@@ -481,7 +484,7 @@ export default function LessonTabs({
 
         {hasAdvanced && (
           <div className={panel("advanced")}>
-            <div className="flex flex-wrap items-center gap-3 rounded-xl2 border border-warm/20 bg-warm-soft/50 px-5 py-4">
+            <div className={["flex flex-wrap items-center gap-3 rounded-xl2 border border-warm/20 bg-warm-soft/50 px-5 py-4", plainPractice ? "hidden" : ""].join(" ")}>
               <span className="rounded-full bg-warm px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
                 B2 – B2+
               </span>
