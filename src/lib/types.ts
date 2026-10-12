@@ -182,6 +182,12 @@ export const VOCAB_FOLDERS: CourseInfo[] = [
     title: "Timed Reading for Fluency 4",
     description: "Eight vocabulary lessons (B1–B2) built from the reading topics, with flashcards, structures and mixed practice.",
   },
+  {
+    slug: "academic-word-list",
+    category: "vocabulary-academic-word-list",
+    title: "Academic Word List",
+    description: "Academic vocabulary lessons (B2–B2+) with flashcards, synonyms and antonyms, structures and varied practice.",
+  },
 ];
 
 /** Every real, filterable quiz category (i.e. every category a quiz row can
