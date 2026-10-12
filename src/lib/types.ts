@@ -163,7 +163,7 @@ export const WRITING_SUB_COURSES: CourseInfo[] = [
 /** Writing folders whose lessons live inside the folder (opened from
  *  /quizzes?category=...) instead of the general "Lessons for Academic
  *  Writing" list. */
-export const WRITING_LESSON_FOLDERS: string[] = ["writing-c15d6"];
+export const WRITING_LESSON_FOLDERS: string[] = ["writing-c15d6", "ielts"];
 
 /** Books inside the Vocabulary Builder course. Each book is its own folder:
  *  its lessons use the category below (always starting with "vocabulary-"),
