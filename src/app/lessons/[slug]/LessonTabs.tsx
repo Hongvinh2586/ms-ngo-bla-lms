@@ -159,6 +159,42 @@ function GrammarCard({ paragraph, index }: { paragraph: string; index: number })
   );
 }
 
+/** A vocabulary meaning may carry extra lines after " // ", e.g.
+ *  "nghĩa — (verb) definition // Synonyms: a, b // Antonyms: c".
+ *  The first part is the main meaning; every other part is shown on its own
+ *  line with a coloured label (Synonyms / Antonyms / Word family ...). */
+function MeaningLines({ meaning }: { meaning: string }) {
+  const [main, ...extras] = meaning
+    .split(" // ")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return (
+    <>
+      <span>{main}</span>
+      {extras.map((line, i) => {
+        const m = line.match(/^([A-Za-z ]{3,24}):\s*([\s\S]*)$/);
+        const label = m ? m[1] : "";
+        const rest = m ? m[2] : line;
+        const tone = /^synonym/i.test(label)
+          ? "bg-good-soft text-good"
+          : /^antonym/i.test(label)
+            ? "bg-bad-soft text-bad"
+            : "bg-accent-soft text-accent-strong";
+        return (
+          <span key={i} className="mt-2 block text-sm leading-relaxed">
+            {label && (
+              <span className={["mr-2 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide", tone].join(" ")}>
+                {label}
+              </span>
+            )}
+            {rest}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 function shuffled<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -257,7 +293,7 @@ function Flashcards({ items }: { items: VocabularyItem[] }) {
         ) : (
           <>
             <p className="text-xs font-bold uppercase tracking-widest text-accent">Meaning</p>
-            <p className="mt-3 text-xl text-ink">{card.meaning}</p>
+            <p className="mt-3 text-xl text-ink"><MeaningLines meaning={card.meaning} /></p>
             {card.example && <p className="mt-4 text-base italic text-ink-soft">&ldquo;{card.example}&rdquo;</p>}
           </>
         )}
@@ -386,7 +422,7 @@ export default function LessonTabs({
                   className="rounded-xl2 border border-line border-l-4 border-l-accent bg-surface p-5 shadow-card"
                 >
                   <p className="font-display text-lg font-bold text-ink">{item.term}</p>
-                  <p className="mt-1 text-sm text-ink-soft">{item.meaning}</p>
+                  <p className="mt-1 text-sm text-ink-soft"><MeaningLines meaning={item.meaning} /></p>
                   {item.example && (
                     <p className="mt-2 text-xs italic text-ink-faint">&ldquo;{item.example}&rdquo;</p>
                   )}
