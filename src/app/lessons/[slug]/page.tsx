@@ -72,6 +72,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         grammarNotes={lesson.grammar_notes ?? null}
         questions={safeQuestions.filter((q) => q.order_index < ADVANCED_FROM)}
         advancedQuestions={safeQuestions.filter((q) => q.order_index >= ADVANCED_FROM)}
+        plainPractice={lesson.category === "ielts"}
       />
     </div>
   );
