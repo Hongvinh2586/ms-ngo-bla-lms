@@ -96,6 +96,7 @@ export default function LessonForm({
             </option>
           ))}
           <option value="writing-c15d6">Writing Courses / C15D6 (B1+)</option>
+          <option value="ielts">IELTS Preparation</option>
         </select>
       </Field>
 
