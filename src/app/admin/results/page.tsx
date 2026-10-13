@@ -151,7 +151,21 @@ export default async function AdminResultsPage({
   };
 
   // Question point totals per quiz, to tell Practice 1 from Practice 2 attempts.
-  const quizIds = Array.from(new Set((attempts ?? []).map((a) => a.quiz_id)));
+  // Published tests in the course being viewed, so the page can also show what is NOT done yet.
+  const courseQuizzes: { id: string; title: string }[] = [];
+  if (searchParams.course && searchParams.course !== "other") {
+    const { data: qz } = await supabase
+      .from("quizzes")
+      .select("id, title")
+      .eq("category", searchParams.course)
+      .eq("is_published", true)
+      .order("order_index", { ascending: true, nullsFirst: false })
+      .returns<{ id: string; title: string }[]>();
+    for (const q of qz ?? []) courseQuizzes.push(q);
+  }
+  const quizIds = Array.from(
+    new Set([...(attempts ?? []).map((a) => a.quiz_id), ...courseQuizzes.map((q) => q.id)])
+  );
   const questionsByQuiz = new Map<string, QuestionLite[]>();
   if (quizIds.length > 0) {
     for (let from = 0; from < 20000; from += 1000) {
@@ -227,6 +241,17 @@ export default async function AdminResultsPage({
     searchParams.course && byCourse.has(searchParams.course) ? searchParams.course : null;
   const shownKeys = active ? [active] : courseKeys;
   const studentFilter = active && searchParams.student ? searchParams.student : null;
+
+  // Every test (and Practice part) of the viewed course, for the "Not done yet" table.
+  const courseTests: { quizId: string; title: string; part: string }[] = [];
+  if (active && active === searchParams.course) {
+    for (const q of courseQuizzes) {
+      if (!questionsByQuiz.has(q.id)) continue;
+      const defs = sectionsByQuiz.get(q.id) ?? [];
+      if (defs.length === 0) courseTests.push({ quizId: q.id, title: q.title, part: "" });
+      else for (const d of defs) courseTests.push({ quizId: q.id, title: q.title, part: d.label });
+    }
+  }
 
   // For one course: per student -> per test -> attempts (oldest first), plus attempt numbers.
   function buildProgress(rows: AttemptRow[]) {
@@ -475,6 +500,74 @@ export default async function AdminResultsPage({
                         </tbody>
                       </table>
                     </div>
+
+                    {courseTests.length > 0 && (
+                      <>
+                        <h4 className="mt-8 font-display text-base font-bold text-ink">
+                          Not done yet
+                        </h4>
+                        <p className="mt-1 text-sm text-ink-soft">
+                          Published tests in this course that each student has not tried even once
+                          (Practice 1 and Practice 2 count separately). Only students with at least
+                          one attempt in this course are listed.
+                        </p>
+                        <div className="mt-3 overflow-x-auto rounded-xl2 border border-line bg-surface shadow-card">
+                          <table className="w-full text-left text-sm">
+                            <thead>
+                              <tr className="border-b border-line text-xs font-semibold uppercase tracking-widest text-ink-faint">
+                                <th className={th}>Student</th>
+                                <th className={th}>Tests done</th>
+                                <th className={th}>Not done yet</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {students.map((s) => {
+                                const doneKeys = new Set<string>();
+                                for (const a of rows) {
+                                  if (a.student_id !== s.studentId) continue;
+                                  for (const label of sectionOf(a).split(" / ")) {
+                                    doneKeys.add(a.quiz_id + "|" + label);
+                                  }
+                                }
+                                const missing = courseTests.filter(
+                                  (t) => !doneKeys.has(t.quizId + "|" + t.part)
+                                );
+                                return (
+                                  <tr key={s.studentId} className="border-b border-line/60 last:border-0 align-top">
+                                    <td className="px-5 py-3 font-semibold text-ink">{nameOf(s.studentId)}</td>
+                                    <td className="px-5 py-3 text-ink">
+                                      {courseTests.length - missing.length} / {courseTests.length}
+                                    </td>
+                                    <td className="px-5 py-3">
+                                      {missing.length === 0 ? (
+                                        <span className="font-bold text-good">All done</span>
+                                      ) : (
+                                        <details>
+                                          <summary className="cursor-pointer font-semibold text-accent">
+                                            {missing.length} not done
+                                          </summary>
+                                          <div className="mt-2 flex flex-wrap gap-1.5">
+                                            {missing.map((t) => (
+                                              <span
+                                                key={t.quizId + "|" + t.part}
+                                                className="rounded-md border border-line px-2 py-0.5 text-xs text-ink-soft"
+                                              >
+                                                {t.title}
+                                                {t.part ? " · " + t.part : ""}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </details>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    )}
 
                     <h4 className="mt-8 font-display text-base font-bold text-ink">
                       Every attempt
