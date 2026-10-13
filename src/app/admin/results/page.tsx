@@ -29,6 +29,8 @@ interface QuestionLite {
 interface SectionDef {
   label: string;
   max: number;
+  from: number; // first question number of this part
+  to: number; // up to (not including)
 }
 
 interface StudentSummary {
@@ -70,12 +72,18 @@ function buildSections(qs: QuestionLite[]): SectionDef[] {
   const hasVocab = qs.some(isVocab);
   const defs: SectionDef[] = [];
   if (hasVocab) {
-    if (qs.some(isStruct)) defs.push({ label: "Structures", max: sum(isStruct) });
-    defs.push({ label: "Vocabulary", max: sum(isVocab) });
+    if (qs.some(isStruct)) defs.push({ label: "Structures", max: sum(isStruct), from: 0, to: VOCAB_FROM });
+    defs.push({ label: "Vocabulary", max: sum(isVocab), from: VOCAB_FROM, to: ADVANCED_FROM });
   } else if (hasAdv) {
-    defs.push({ label: "Practice 1", max: sum((q) => !isAdv(q)) });
+    defs.push({ label: "Practice 1", max: sum((q) => !isAdv(q)), from: 0, to: ADVANCED_FROM });
   }
-  if (hasAdv) defs.push({ label: hasVocab ? "Advanced" : "Practice 2", max: sum(isAdv) });
+  if (hasAdv)
+    defs.push({
+      label: hasVocab ? "Advanced" : "Practice 2",
+      max: sum(isAdv),
+      from: ADVANCED_FROM,
+      to: 1000000,
+    });
   return defs;
 }
 
@@ -164,8 +172,41 @@ export default async function AdminResultsPage({
   }
   const sectionsByQuiz = new Map<string, SectionDef[]>();
   questionsByQuiz.forEach((qs, quizId) => sectionsByQuiz.set(quizId, buildSections(qs)));
+  const matchingDefs = (a: AttemptRow) =>
+    (sectionsByQuiz.get(a.quiz_id) ?? []).filter(
+      (d) => Math.abs(d.max - Number(a.max_score)) < 0.01
+    );
+  // Two parts with the same total score cannot be told apart by score alone, so for those
+  // attempts look at which questions the student actually answered.
+  const ambiguous = (attempts ?? []).filter((a) => matchingDefs(a).length > 1);
+  const orderOfQuestion = new Map<string, number>();
+  questionsByQuiz.forEach((qs) => qs.forEach((q) => orderOfQuestion.set(q.id, q.order_index)));
+  const resolvedSection = new Map<string, string>();
+  for (let i = 0; i < ambiguous.length; i += 15) {
+    const chunk = ambiguous.slice(i, i + 15);
+    const { data: ans } = await supabase
+      .from("quiz_answers")
+      .select("attempt_id, question_id")
+      .in(
+        "attempt_id",
+        chunk.map((a) => a.id)
+      )
+      .range(0, 999)
+      .returns<{ attempt_id: string; question_id: string }[]>();
+    const firstOrder = new Map<string, number>();
+    for (const r of ans ?? []) {
+      const o = orderOfQuestion.get(r.question_id);
+      if (o !== undefined && !firstOrder.has(r.attempt_id)) firstOrder.set(r.attempt_id, o);
+    }
+    for (const a of chunk) {
+      const o = firstOrder.get(a.id);
+      if (o === undefined) continue;
+      const hit = matchingDefs(a).find((d) => o >= d.from && o < d.to);
+      if (hit) resolvedSection.set(a.id, hit.label);
+    }
+  }
   const sectionOf = (a: AttemptRow) =>
-    sectionLabel(sectionsByQuiz.get(a.quiz_id) ?? [], a.max_score);
+    resolvedSection.get(a.id) ?? sectionLabel(sectionsByQuiz.get(a.quiz_id) ?? [], a.max_score);
   const testName = (a: AttemptRow) => {
     const sec = sectionOf(a);
     return (a.quizzes?.title ?? "—") + (sec ? " · " + sec : "");
