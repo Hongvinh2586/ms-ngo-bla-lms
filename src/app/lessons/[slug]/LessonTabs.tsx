@@ -334,6 +334,19 @@ function Flashcards({ items }: { items: VocabularyItem[] }) {
   );
 }
 
+/** Per practice part (basic / structures / vocabulary / advanced): attempts and best % of this student. */
+export type PartStatus = Record<string, { attempts: number; best: number }>;
+
+function PartChip({ status }: { status?: { attempts: number; best: number } }) {
+  return status ? (
+    <span className="rounded-full bg-good-soft px-3 py-1 text-xs font-bold text-good">
+      ✓ Done · best {status.best}% · {status.attempts} {status.attempts === 1 ? "attempt" : "attempts"}
+    </span>
+  ) : (
+    <span className="rounded-full bg-warm-soft px-3 py-1 text-xs font-bold text-warm">Not done yet</span>
+  );
+}
+
 export default function LessonTabs({
   quizId,
   quizSlug,
@@ -342,6 +355,7 @@ export default function LessonTabs({
   questions,
   advancedQuestions = [],
   plainPractice = false,
+  partStatus = {},
 }: {
   quizId: string;
   quizSlug: string;
@@ -351,6 +365,8 @@ export default function LessonTabs({
   advancedQuestions?: SafeQuestion[];
   /** IELTS lessons: show "Practice 1" / "Practice 2" without any level wording. */
   plainPractice?: boolean;
+  /** What this student has already done, so each Practice can say "done" or "not done yet". */
+  partStatus?: PartStatus;
 }) {
   const hasAdvanced = advancedQuestions.length > 0;
 
@@ -380,6 +396,24 @@ export default function LessonTabs({
 
   const [tab, setTab] = useState<Tab>(availableTabs[0]?.key ?? "practice");
 
+  // Small badge on the Practice tabs: done (with best score) or New.
+  const tabMark = (key: Tab): { text: string; done: boolean } | null => {
+    if (key === "advanced") {
+      const s = partStatus.advanced;
+      return s ? { text: "✓ " + s.best + "%", done: true } : { text: "New", done: false };
+    }
+    if (key === "practice") {
+      if (questions.length === 0) return null;
+      const parts = hasTwoQuizzes ? ["structures", "vocabulary"] : ["basic"];
+      const done = parts.filter((p) => partStatus[p]);
+      if (done.length === 0) return { text: "New", done: false };
+      if (!hasTwoQuizzes) return { text: "✓ " + partStatus.basic.best + "%", done: true };
+      if (done.length === parts.length) return { text: "✓ 2/2", done: true };
+      return { text: "1/2 done", done: false };
+    }
+    return null;
+  };
+
   // Every panel stays mounted (only hidden) so answers typed in a practice tab
   // are not lost when the student flips to Structures and back.
   const panel = (key: Tab) => (tab === key ? "" : "hidden");
@@ -389,6 +423,7 @@ export default function LessonTabs({
       <div className="inline-flex max-w-full flex-wrap gap-1 rounded-full border border-line bg-surface p-1 shadow-card">
         {availableTabs.map((t) => {
           const active = tab === t.key;
+          const mark = tabMark(t.key);
           return (
             <button
               key={t.key}
@@ -408,6 +443,22 @@ export default function LessonTabs({
                   ].join(" ")}
                 >
                   {t.count}
+                </span>
+              )}
+              {mark && (
+                <span
+                  className={[
+                    "rounded-full px-2 py-0.5 text-xs font-bold",
+                    mark.done
+                      ? active
+                        ? "bg-white text-good"
+                        : "bg-good-soft text-good"
+                      : active
+                        ? "bg-white/25 text-white"
+                        : "bg-warm-soft text-warm",
+                  ].join(" ")}
+                >
+                  {mark.text}
                 </span>
               )}
             </button>
@@ -467,18 +518,24 @@ export default function LessonTabs({
                     </span>
                     <h2 className="font-display text-xl font-bold text-ink">{quiz.label}</h2>
                     <span className="text-sm text-ink-soft">{quiz.items.length} questions · scored separately</span>
+                    <PartChip status={partStatus[quiz.key]} />
                   </div>
                   <QuizRunner quizId={quizId} quizSlug={quizSlug} questions={quiz.items} section={quiz.key} />
                 </section>
               ))}
             </div>
           ) : (
-            <QuizRunner
-              quizId={quizId}
-              quizSlug={quizSlug}
-              questions={questions}
-              section={hasAdvanced ? "basic" : undefined}
-            />
+            <>
+              <div className="mb-4">
+                <PartChip status={partStatus.basic} />
+              </div>
+              <QuizRunner
+                quizId={quizId}
+                quizSlug={quizSlug}
+                questions={questions}
+                section={hasAdvanced ? "basic" : undefined}
+              />
+            </>
           )}
         </div>
 
@@ -491,6 +548,9 @@ export default function LessonTabs({
               <p className="text-sm text-ink-soft">
                 Harder tasks: read for logic and cohesion, not just grammar. Scored separately from Practice.
               </p>
+            </div>
+            <div className="mt-4">
+              <PartChip status={partStatus.advanced} />
             </div>
             <QuizRunner
               quizId={quizId}
