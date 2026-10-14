@@ -81,7 +81,8 @@ export default async function QuizzesPage({
     }
   }
   const weekOf = (t: string) => {
-    const m = /Week\s*(\d+)/i.exec(t);
+    // "Week 36: ..." or a leading number such as "5. Linking words" (A2 quizzes are numbered in order).
+    const m = /Week\s*(\d+)/i.exec(t) ?? /^\s*(\d+)\s*[.)]/.exec(t);
     return m ? parseInt(m[1], 10) : 9999;
   };
   const partOf = (t: string) => {
