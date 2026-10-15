@@ -44,6 +44,65 @@ a:hover .mascot-bob {
   box-shadow: 0 1px 0 rgba(43, 48, 16, 0.55) !important;
 }
 
+/* Rainbow 3D "Start quiz" button: moving rainbow, chunky edge, glossy top, sinks when pressed. */
+@keyframes rainbow-slide {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+.rainbow-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  border: 3px solid #2b3010;
+  background-image: linear-gradient(
+    90deg,
+    #ff3b3b, #ff9f1a, #ffd60a, #34c759, #1ec8ff, #4f6bff, #b04bff,
+    #ff3b3b, #ff9f1a, #ffd60a, #34c759, #1ec8ff, #4f6bff, #b04bff, #ff3b3b
+  );
+  background-size: 200% 100%;
+  animation: rainbow-slide 7s linear infinite;
+  -webkit-text-stroke: 3px #2b3010;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 rgba(43, 48, 16, 0.45);
+  box-shadow:
+    inset 0 5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -7px 0 rgba(0, 0, 0, 0.2),
+    0 7px 0 #2b3010,
+    0 14px 16px rgba(43, 48, 16, 0.3);
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.15s;
+}
+.rainbow-btn::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 8%;
+  right: 8%;
+  top: 4px;
+  height: 42%;
+  border-radius: 999px;
+  background: linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.rainbow-btn:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.2) brightness(1.06);
+  box-shadow:
+    inset 0 5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -7px 0 rgba(0, 0, 0, 0.2),
+    0 9px 0 #2b3010,
+    0 18px 18px rgba(43, 48, 16, 0.3);
+}
+.rainbow-btn:active {
+  transform: translateY(6px);
+  box-shadow:
+    inset 0 5px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.2),
+    0 1px 0 #2b3010,
+    0 3px 6px rgba(43, 48, 16, 0.3);
+}
+
 /* Stars on the quiz progress bar pop when they light up. */
 @keyframes star-pop {
   0% { transform: scale(0.6) rotate(-20deg); }
@@ -102,7 +161,8 @@ a:hover .mascot-bob {
   .pick-pop,
   .mascot-hop,
   .mascot-dance,
-  .new-wiggle {
+  .new-wiggle,
+  .rainbow-btn {
     animation: none;
   }
 }
