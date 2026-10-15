@@ -77,6 +77,7 @@ export function FunCard({
   mascot,
   tint: tintIndex,
   status,
+  rainbow,
 }: {
   index: number;
   title: string;
@@ -91,6 +92,8 @@ export function FunCard({
   tint?: number;
   /** Has this student tried it? Shows "New!" or the best score. */
   status?: { done: boolean; best?: number };
+  /** Use the rainbow 3D button (for the "Start quiz" button). */
+  rainbow?: boolean;
 }) {
   const tint = tintFor(tintIndex ?? index);
   return (
@@ -138,7 +141,11 @@ export function FunCard({
       {meta && <p className="text-sm font-bold text-ink-soft">{meta}</p>}
       <Link
         href={href}
-        className="press mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-4 text-lg font-extrabold text-white shadow-[0_5px_0_#5B6B1F] transition-colors hover:bg-accent-strong"
+        className={
+          rainbow
+            ? "rainbow-btn mt-auto inline-flex w-full items-center justify-center rounded-full px-6 py-4 text-xl font-extrabold"
+            : "press mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-4 text-lg font-extrabold text-white shadow-[0_5px_0_#5B6B1F] transition-colors hover:bg-accent-strong"
+        }
       >
         {cta}
       </Link>
