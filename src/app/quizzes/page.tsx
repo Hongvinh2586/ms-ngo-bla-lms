@@ -236,6 +236,7 @@ export default async function QuizzesPage({
             meta={quiz.time_limit_minutes ? "Suggested time: " + quiz.time_limit_minutes + " min" : null}
             href={quiz.isLesson ? "/lessons/" + quiz.slug : "/quizzes/" + quiz.slug}
             cta={quiz.isLesson ? "Study now →" : bestByQuiz.has(quiz.id) ? "Play again" : "Start quiz"}
+            rainbow={!quiz.isLesson}
           />
         ))}
       </div>
