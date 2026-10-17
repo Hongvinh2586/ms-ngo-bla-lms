@@ -62,8 +62,11 @@ export default async function TakeQuizPage({ params }: { params: { slug: string 
         {quiz.title}
       </h1>
       {quiz.description && (
-        <p className="mt-2 text-lg font-semibold text-ink-soft">
-          {quiz.description.split("[[PASSAGE]]")[0].trim()}
+        <p
+          className="mt-2 truncate text-base font-semibold text-ink-soft"
+          title={quiz.description.split("[[PASSAGE]]")[0].trim()}
+        >
+          {quiz.description.split("[[PASSAGE]]")[0].trim().split("\n")[0]}
         </p>
       )}
       {quiz.description?.includes("[[PASSAGE]]") && (
