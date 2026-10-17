@@ -237,6 +237,7 @@ export default async function QuizzesPage({
             href={quiz.isLesson ? "/lessons/" + quiz.slug : "/quizzes/" + quiz.slug}
             cta={quiz.isLesson ? "Study now →" : bestByQuiz.has(quiz.id) ? "Play again" : "Start quiz"}
             rainbow={!quiz.isLesson}
+            classic={quiz.category === "writing-b1-b2"}
           />
         ))}
       </div>
