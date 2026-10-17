@@ -108,3 +108,47 @@ export async function submitQuizAttempt(
 
   redirect(`/results/${attempt.id}`);
 }
+
+/** A small nudge for typed-answer questions: the first letter (or first word) of the
+ *  answer, never the whole answer. Returns null when there is nothing sensible to show. */
+export async function getHint(questionId: string): Promise<string | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: question } = await supabase
+    .from("questions")
+    .select("id, quiz_id, type, data")
+    .eq("id", questionId)
+    .single<{ id: string; quiz_id: string; type: string; data: { acceptedAnswers?: string[] } }>();
+  if (!question) return null;
+  if (question.type !== "fill_blank" && question.type !== "sentence_completion") return null;
+
+  const allowed = await allowedFolders(supabase, user);
+  if (allowed !== null) {
+    const { data: quizRow } = await supabase
+      .from("quizzes")
+      .select("category")
+      .eq("id", question.quiz_id)
+      .single<{ category: string | null }>();
+    if (!quizRow || !canSee(allowed, quizRow.category)) return null;
+  }
+
+  const answer = (question.data?.acceptedAnswers ?? []).map((a) => String(a).trim()).find(Boolean);
+  if (!answer) return null;
+  const words = answer.replace(/[.,;:!?]+$/g, "").split(/\s+/).filter(Boolean);
+  if (words.length === 0) return null;
+
+  if (question.type === "sentence_completion") {
+    return "It starts with \u201C" + words[0] + "\u201D";
+  }
+  const first = words[0].charAt(0);
+  if (words.length === 1) {
+    return "It starts with \u201C" + first + "\u201D and has " + words[0].length + " letters";
+  }
+  return "It has " + words.length + " words and starts with \u201C" + first + "\u201D";
+}
