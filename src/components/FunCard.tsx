@@ -123,7 +123,7 @@ export function FunCard({
           {status &&
             (status.done ? (
               <span className="rounded-full border-2 border-ink bg-good-soft px-3 py-1 text-xs font-extrabold text-ink">
-                ✓ Best {status.best}%
+                {(status.best ?? 0) >= 90 ? "🥇" : (status.best ?? 0) >= 70 ? "🥈" : (status.best ?? 0) >= 50 ? "🥉" : "✓"} Best {status.best}%
               </span>
             ) : (
               <span className="new-wiggle rounded-full border-2 border-ink bg-[#FFE08A] px-3 py-1 text-xs font-extrabold text-ink">
