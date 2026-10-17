@@ -89,6 +89,7 @@ export default async function TakeQuizPage({ params }: { params: { slug: string 
           questions={safeQuestions}
           mascot={mascot}
           timeLimitMinutes={quiz.time_limit_minutes}
+          classic={quiz.category === "writing-b1-b2"}
         />
       )}
     </div>
