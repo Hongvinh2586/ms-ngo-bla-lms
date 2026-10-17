@@ -78,7 +78,7 @@ export default function ReadingTools() {
   }
 
   const btn =
-    "press grid h-8 min-w-[2rem] place-items-center rounded-full border border-line bg-white px-2 text-sm font-extrabold text-ink transition-colors hover:border-accent disabled:opacity-40";
+    "press inline-flex h-8 min-w-[2rem] items-center justify-center rounded-full border border-line bg-white px-2 text-sm font-extrabold text-ink transition-colors hover:border-accent disabled:opacity-40";
 
   return (
     <div className="reading-tools flex flex-wrap items-center justify-end gap-2" aria-label="Reading comfort">
