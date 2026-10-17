@@ -134,8 +134,8 @@ export function FunCard({
       </div>
       <h2 className="font-display text-lg font-extrabold leading-snug text-ink">{title}</h2>
       {description && (
-        <p className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink-soft">
-          {description.split("[[PASSAGE]]")[0].trim()}
+        <p className="line-clamp-1 text-sm font-semibold leading-snug text-ink-soft">
+          {description.split("[[PASSAGE]]")[0].trim().split("\n")[0]}
         </p>
       )}
       {meta && <p className="text-sm font-bold text-ink-soft">{meta}</p>}
@@ -200,7 +200,7 @@ export function FunLink({
       )}
       <h2 className="font-display text-lg font-extrabold leading-snug text-ink">{title}</h2>
       {description && (
-        <p className="flex-grow text-base font-semibold text-ink-soft">{description}</p>
+        <p className="line-clamp-2 flex-grow text-base font-semibold text-ink-soft">{description}</p>
       )}
       <span className="mt-1 w-fit rounded-full bg-ink px-5 py-2 text-base font-extrabold text-white">
         {cta}
