@@ -91,7 +91,7 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
   }
 
   return (
-    <div className="mt-8 flex flex-col gap-6 pb-28 sm:pb-8">
+    <div className="mt-8 flex flex-col gap-6 pb-20 sm:pb-8">
       {questions.map((question, index) => (
         <QuestionCard
           key={question.id}
@@ -109,48 +109,47 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
         </p>
       )}
 
-      <div className="sticky bottom-3 z-10 flex flex-col items-end gap-2">
-        {secondsLeft !== null && (
-          <div
-            className={
-              "rounded-full px-3.5 py-1 text-sm font-extrabold tabular-nums shadow-[0_4px_14px_rgba(62,74,18,0.28)] " +
-              (timeUp ? "bg-bad text-white" : timeLow ? "animate-pulse bg-bad-soft text-bad" : "bg-white text-ink")
-            }
-            role="timer"
-            aria-label={timeUp ? "Time is up" : "Time left " + formatClock(secondsLeft)}
-          >
-            {timeUp ? "Time's up!" : "\u23F0 " + formatClock(secondsLeft) + " left"}
-          </div>
-        )}
-        <div className="flex w-full items-center gap-3 rounded-full bg-[#B8DC5C] py-2 pl-2.5 pr-2 shadow-[0_10px_28px_rgba(62,74,18,0.32)] ring-1 ring-black/5">
-          <div
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all duration-500"
-            style={{ background: "conic-gradient(#3E4A12 0 " + pct + "%, rgba(255,255,255,0.65) 0)" }}
-            role="img"
-            aria-label={Math.round(pct) + " percent answered"}
-          >
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-[#F6FAE0] text-xs font-extrabold text-ink">
-              {Math.round(pct)}%
-            </span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-base font-extrabold leading-tight text-ink">
-              {answeredCount} of {total} answered
-            </p>
-            <p className="text-xs font-bold leading-tight text-ink/70 sm:text-sm">{cheer}</p>
-          </div>
-          <button
-            onClick={handleSubmit}
-            disabled={isPending}
-            style={submitStyle}
-            className={
-              "press shrink-0 rounded-full px-6 py-3 text-base font-extrabold shadow-[0_3px_0_rgba(43,48,16,0.35)] transition-colors duration-500 disabled:opacity-60 sm:px-8 sm:text-lg " +
-              (allDone && !isPending ? "submit-ready" : "")
-            }
-          >
-            {isPending ? "Submitting…" : "Submit quiz"}
-          </button>
+      <div className="sticky bottom-2 z-10 mx-auto flex w-full max-w-md items-center gap-2 rounded-full bg-[#9AA84A] py-1.5 pl-1.5 pr-1.5 shadow-[0_6px_18px_rgba(62,74,18,0.30)] ring-1 ring-black/5">
+        <div
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full transition-all duration-500"
+          style={{ background: "conic-gradient(#2B3010 0 " + pct + "%, rgba(255,255,255,0.6) 0)" }}
+          role="img"
+          aria-label={Math.round(pct) + " percent answered"}
+        >
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-[#F1F3DF] text-[10px] font-extrabold text-ink">
+            {Math.round(pct)}%
+          </span>
         </div>
+        <div className="min-w-0 flex-1 leading-tight">
+          <p className="text-sm font-extrabold text-ink">
+            {answeredCount}/{total} answered
+          </p>
+          {secondsLeft !== null ? (
+            <p
+              className={
+                "text-[11px] font-bold tabular-nums " +
+                (timeUp ? "text-[#6E1F14]" : timeLow ? "animate-pulse text-[#6E1F14]" : "text-ink/75")
+              }
+              role="timer"
+              aria-label={timeUp ? "Time is up" : "Time left " + formatClock(secondsLeft)}
+            >
+              {timeUp ? "Time's up!" : "\u23F0 " + formatClock(secondsLeft) + " left"}
+            </p>
+          ) : (
+            <p className="truncate text-[11px] font-bold text-ink/75">{cheer}</p>
+          )}
+        </div>
+        <button
+          onClick={handleSubmit}
+          disabled={isPending}
+          style={submitStyle}
+          className={
+            "press shrink-0 rounded-full px-4 py-2 text-sm font-extrabold shadow-[0_2px_0_rgba(43,48,16,0.35)] transition-colors duration-500 disabled:opacity-60 " +
+            (allDone && !isPending ? "submit-ready" : "")
+          }
+        >
+          {isPending ? "Submitting…" : "Submit quiz"}
+        </button>
       </div>
     </div>
   );
