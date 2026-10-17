@@ -176,3 +176,12 @@ a:hover .mascot-bob {
 @media (prefers-reduced-motion: reduce) {
   .submit-ready { animation: none; }
 }
+
+/* Softer look: thinner outlines and soft shadows instead of hard 3D edges.
+   These override the heavy utility classes that are used across the site. */
+.border-\[3px\] { border-width: 2px; }
+.shadow-\[0_8px_0_\#2B3010\],
+.shadow-\[0_6px_0_\#2B3010\],
+.shadow-\[0_5px_0_\#2B3010\] { box-shadow: 0 8px 22px -10px rgba(43, 48, 16, 0.38); }
+.shadow-\[0_4px_0_\#2B3010\],
+.shadow-\[0_3px_0_\#2B3010\] { box-shadow: 0 3px 8px -3px rgba(43, 48, 16, 0.35); }
