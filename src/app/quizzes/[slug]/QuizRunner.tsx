@@ -15,6 +15,8 @@ interface Props {
   mascot?: string;
   /** Suggested time in minutes. When set, a countdown is shown while the student works. */
   timeLimitMinutes?: number | null;
+  /** Classic look for the bottom bar (thick outline, full width, mascot running along the track). */
+  classic?: boolean;
 }
 
 function formatClock(totalSeconds: number): string {
@@ -37,7 +39,7 @@ function mixColor(a: string, b: string, t: number): string {
 const MAX_HINTS = 3;
 const DRAFT_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 
-export default function QuizRunner({ quizId, questions, section, mascot, timeLimitMinutes }: Props) {
+export default function QuizRunner({ quizId, questions, section, mascot, timeLimitMinutes, classic }: Props) {
   const limitSeconds = timeLimitMinutes && timeLimitMinutes > 0 ? Math.round(timeLimitMinutes * 60) : null;
   const [secondsLeft, setSecondsLeft] = useState<number | null>(limitSeconds);
   useEffect(() => {
@@ -225,6 +227,20 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
         </p>
       )}
 
+      {classic ? (
+        <ClassicBar
+          pct={pct}
+          answeredCount={answeredCount}
+          total={total}
+          cheer={cheer}
+          secondsLeft={secondsLeft}
+          timeUp={timeUp}
+          timeLow={timeLow}
+          mascot={mascot ?? "\u{1F41D}"}
+          isPending={isPending}
+          onSubmit={handleSubmit}
+        />
+      ) : (
       <div className="sticky bottom-2 z-10 ml-auto flex w-fit max-w-full items-center gap-3 rounded-full bg-[#A9BA4E] py-1.5 pl-1.5 pr-1.5 shadow-[0_6px_18px_rgba(62,74,18,0.30)] ring-1 ring-black/5">
         <div
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full transition-all duration-500"
@@ -266,6 +282,105 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
         >
           {isPending ? "Submitting…" : "Submit quiz"}
         </button>
+      </div>
+      )}
+    </div>
+  );
+}
+
+function ClassicBar({
+  pct,
+  answeredCount,
+  total,
+  cheer,
+  secondsLeft,
+  timeUp,
+  timeLow,
+  mascot,
+  isPending,
+  onSubmit,
+}: {
+  pct: number;
+  answeredCount: number;
+  total: number;
+  cheer: string;
+  secondsLeft: number | null;
+  timeUp: boolean;
+  timeLow: boolean;
+  mascot: string;
+  isPending: boolean;
+  onSubmit: () => void;
+}) {
+  const starsLit = total === 0 ? 0 : pct >= 100 ? 3 : pct >= 66 ? 2 : pct >= 33 ? 1 : 0;
+  const running = pct < 100;
+  return (
+    <div className="classic-bar sticky bottom-3 z-10 flex w-full flex-col gap-2 rounded-xl2 border-ink bg-tint-butter px-4 pb-3 pt-2">
+      <div className="flex items-end gap-3">
+        <div className="relative min-w-0 flex-1 pt-9">
+          <span
+            className="absolute top-0 -translate-x-1/2 text-3xl leading-none transition-all duration-500"
+            style={{ left: Math.min(Math.max(pct, 4), 94) + "%" }}
+            aria-hidden="true"
+          >
+            <span className={running ? "mascot-run" : "mascot-hop inline-block"}>{mascot}</span>
+          </span>
+          <div className="h-5 overflow-hidden rounded-full border-2 border-ink bg-white/80">
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: pct + "%" }}
+            />
+          </div>
+          <span className="absolute right-0 top-3 text-2xl leading-none" aria-hidden="true">
+            {"\u{1F3C1}"}
+          </span>
+        </div>
+        <div className="flex shrink-0 items-center" aria-label={starsLit + " of 3 stars"}>
+          {[0, 1, 2].map((i) => (
+            <svg
+              key={i + "-" + (i < starsLit ? "on" : "off")}
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill={i < starsLit ? "#FFC93C" : "#FFFFFF"}
+              stroke="#2B3010"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+              className={i < starsLit ? "star-lit" : ""}
+              aria-hidden="true"
+            >
+              <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />
+            </svg>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-base font-extrabold leading-tight text-ink">
+            {answeredCount} of {total} answered
+          </p>
+          <p className="text-xs font-bold leading-tight text-ink-soft sm:text-sm">{cheer}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {secondsLeft !== null && (
+            <span
+              className={
+                "rounded-full border-2 border-ink px-3 py-1 text-sm font-extrabold tabular-nums " +
+                (timeUp ? "bg-bad text-white" : timeLow ? "animate-pulse bg-bad-soft text-bad" : "bg-white text-ink")
+              }
+              role="timer"
+              aria-label={timeUp ? "Time is up" : "Time left " + formatClock(secondsLeft)}
+            >
+              {timeUp ? "Time's up!" : "⏰ " + formatClock(secondsLeft)}
+            </span>
+          )}
+          <button
+            onClick={onSubmit}
+            disabled={isPending}
+            className="press rounded-full bg-accent px-6 py-3 text-base font-extrabold text-white shadow-[0_5px_0_#3E4A12] transition-colors hover:bg-accent-strong disabled:opacity-60 sm:px-9 sm:py-3.5 sm:text-lg"
+          >
+            {isPending ? "Submitting…" : "Submit quiz"}
+          </button>
+        </div>
       </div>
     </div>
   );
