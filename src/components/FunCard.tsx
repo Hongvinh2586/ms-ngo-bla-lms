@@ -78,6 +78,7 @@ export function FunCard({
   tint: tintIndex,
   status,
   rainbow,
+  classic,
 }: {
   index: number;
   title: string;
@@ -86,6 +87,8 @@ export function FunCard({
   meta?: string | null;
   href: string;
   cta: string;
+  /** Classic look (thick outline, hard shadow, big button) for classes that prefer it. */
+  classic?: boolean;
   /** Emoji mascot for the topic; replaces the plain icon when given. */
   mascot?: string | null;
   /** Which colour to use (e.g. the week number); defaults to the card position. */
@@ -99,14 +102,18 @@ export function FunCard({
   return (
     <article
       className={
-        "flex flex-col gap-2.5 rounded-xl2 border-2 border-ink p-5 shadow-[0_8px_22px_-10px_rgba(43,48,16,0.38)] transition-transform hover:-translate-y-1 " +
+        (classic
+          ? "classic-card flex flex-col gap-3 rounded-xl2 border-ink p-7 transition-transform hover:-translate-y-1 "
+          : "flex flex-col gap-2.5 rounded-xl2 border-2 border-ink p-5 shadow-[0_8px_22px_-10px_rgba(43,48,16,0.38)] transition-transform hover:-translate-y-1 ") +
         tint.card
       }
     >
       <div className="flex items-center justify-between gap-3">
         <span
           className={
-            "flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-ink text-ink " +
+            (classic
+              ? "classic-icon flex h-16 w-16 items-center justify-center rounded-2xl border-ink text-ink "
+              : "flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-ink text-ink ") +
             tint.icon
           }
         >
@@ -143,8 +150,10 @@ export function FunCard({
         href={href}
         className={
           rainbow
-            ? "rainbow-btn mt-auto inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-lg font-extrabold"
-            : "press mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-3 text-lg font-extrabold text-white shadow-[0_4px_0_#5B6B1F] transition-colors hover:bg-accent-strong"
+            ? "rainbow-btn mt-auto inline-flex w-full items-center justify-center rounded-full px-6 font-extrabold " +
+              (classic ? "py-4 text-xl" : "py-3 text-lg")
+            : "press mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 font-extrabold text-white transition-colors hover:bg-accent-strong " +
+              (classic ? "py-4 text-lg shadow-[0_5px_0_#5B6B1F]" : "py-3 text-lg shadow-[0_4px_0_#5B6B1F]")
         }
       >
         {cta}
