@@ -12,6 +12,14 @@ function normalize(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+// For typed sentences: also ignore the full stop / ! / ? at the end and curly quotes,
+// so "I went home" and "I went home." (and "I\u2019m" vs "I'm") are both accepted.
+function normalizeSentence(text: string): string {
+  return normalize(text.replace(/[\u2018\u2019]/g, "'"))
+    .replace(/[.!?]+$/, "")
+    .trim();
+}
+
 export interface GradeResult {
   isCorrect: boolean;
   pointsAwarded: number;
@@ -45,10 +53,10 @@ export function gradeAnswer(question: QuestionRow, answer: StudentAnswer | undef
     case "fill_blank":
     case "sentence_completion": {
       const data = question.data as FillBlankData;
-      const accepted = (data.acceptedAnswers ?? []).map(normalize);
+      const accepted = (data.acceptedAnswers ?? []).map(normalizeSentence);
       const given =
         (answer.type === "fill_blank" || answer.type === "sentence_completion") &&
-        normalize(answer.text || "");
+        normalizeSentence(answer.text || "");
       const correct = typeof given === "string" && accepted.includes(given);
       return { isCorrect: correct, pointsAwarded: correct ? points : 0 };
     }
