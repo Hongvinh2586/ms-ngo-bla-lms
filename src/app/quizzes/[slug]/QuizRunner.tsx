@@ -155,6 +155,8 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
   );
 }
 
+const CHEERS = ["Got it!", "Nice pick!", "Great!", "Locked in!", "Good one!"];
+
 function QuestionCard({
   index,
   question,
@@ -177,11 +179,18 @@ function QuestionCard({
   // The mascot hops each time a choice changes (for typing, only when the first letter arrives).
   const hopKey = answer ? (blankType ? "typed-" + (typed ? "yes" : "no") : JSON.stringify(answer)) : "none";
   return (
-    <div className="rounded-xl2 border-[3px] border-ink bg-surface p-7 shadow-[0_6px_0_#2B3010]">
+    <div className="rounded-xl2 border-2 border-ink/80 bg-surface p-5 shadow-[0_8px_22px_-10px_rgba(43,48,16,0.38)] sm:p-6">
       <div className="flex items-center justify-between gap-3">
-        <p className="inline-block rounded-full bg-tint-butter px-3 py-1 text-xs font-extrabold uppercase tracking-widest text-ink">
-          Question {index + 1}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="inline-block rounded-full bg-tint-butter px-3 py-1 text-xs font-bold text-ink">
+            Question {index + 1}
+          </p>
+          {answer && (
+            <span key={hopKey} className="pick-pop rounded-full border border-line bg-white px-2.5 py-0.5 text-xs font-bold text-accent-strong">
+              {CHEERS[index % CHEERS.length]}
+            </span>
+          )}
+        </div>
         <span
           key={hopKey}
           className={(answer ? "mascot-hop" : "mascot-bob") + " text-3xl leading-none"}
@@ -288,7 +297,7 @@ function PromptView({
   return (
     <div className="mt-3">
       {instruction && (
-        <p className="mb-3 text-base font-extrabold uppercase tracking-wide text-accent-strong">
+        <p className="mb-2 text-[15px] font-bold text-accent-strong">
           {instruction}
         </p>
       )}
@@ -300,15 +309,15 @@ function PromptView({
       <p
         className={
           (instruction
-            ? "border-l-4 border-ink pl-4 font-display text-xl font-bold text-ink"
-            : "font-display text-xl font-bold text-ink") + " whitespace-pre-line"
+            ? "border-l-4 border-accent/60 pl-4 font-display text-[1.1rem] font-semibold leading-relaxed text-ink"
+            : "font-display text-[1.1rem] font-semibold leading-relaxed text-ink") + " whitespace-pre-line"
         }
       >
         {body}
       </p>
       {words.length > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-ink">Word box{onPick ? " · tap a word" : ""}</span>
+          <span className="text-xs font-bold text-ink-soft">Word box{onPick ? " · tap a word" : ""}</span>
           {words.map((w, i) =>
             onPick ? (
               <button
@@ -317,7 +326,7 @@ function PromptView({
                 onClick={() => onPick(w)}
                 style={{ transform: "rotate(" + ((i % 3) - 1) * 1.5 + "deg)" }}
                 className={
-                  "press rounded-full border-2 border-ink px-4 py-1.5 text-lg font-bold shadow-[0_3px_0_#2B3010] " +
+                  "press rounded-full border-2 border-ink px-4 py-1.5 text-base font-semibold shadow-[0_3px_0_#2B3010] " +
                   (picked && picked.trim().toLowerCase() === w.toLowerCase()
                     ? "bg-accent text-white"
                     : "bg-tint-butter text-ink")
@@ -357,7 +366,7 @@ function MultipleChoiceInput({
       {options.map((option, i) => (
         <label
           key={i}
-          className={`press flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base font-semibold transition-colors ${
+          className={`press flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base font-medium transition-colors ${
             selectedIndex === i
               ? "pick-pop border-accent bg-accent-soft text-ink"
               : "border-line bg-white text-ink hover:border-accent"
@@ -393,7 +402,7 @@ function TrueFalseInput({
           key={String(option)}
           type="button"
           onClick={() => onChange({ type: "true_false", value: option })}
-          className={`press rounded-full border-2 px-8 py-3 text-lg font-extrabold shadow-[0_3px_0_#CBD1A0] transition-colors ${
+          className={`press rounded-full border-2 px-7 py-2.5 text-base font-bold shadow-[0_3px_0_#CBD1A0] transition-colors ${
             value === option
               ? "pick-pop border-accent bg-accent-soft text-ink"
               : "border-line bg-white text-ink hover:border-accent"
@@ -427,7 +436,7 @@ function TextInput({
       autoCapitalize="none"
       autoComplete="off"
       spellCheck={false}
-      className="w-full rounded-2xl border-[3px] border-ink bg-white px-5 py-4 text-xl font-bold text-ink shadow-[0_4px_0_#CBD1A0] outline-none transition-shadow placeholder:font-semibold placeholder:text-ink-faint focus:border-accent focus:shadow-[0_4px_0_#5B6B1F]"
+      className="w-full rounded-2xl border-2 border-line bg-white px-4 py-3 text-lg font-semibold text-ink outline-none transition-colors placeholder:font-medium placeholder:text-ink-faint focus:border-accent"
     />
   );
 }
