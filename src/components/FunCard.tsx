@@ -99,14 +99,14 @@ export function FunCard({
   return (
     <article
       className={
-        "flex flex-col gap-3 rounded-xl2 border-[3px] border-ink p-7 shadow-[0_8px_0_#2B3010] transition-transform hover:-translate-y-1 " +
+        "flex flex-col gap-2.5 rounded-xl2 border-2 border-ink p-5 shadow-[0_8px_22px_-10px_rgba(43,48,16,0.38)] transition-transform hover:-translate-y-1 " +
         tint.card
       }
     >
       <div className="flex items-center justify-between gap-3">
         <span
           className={
-            "flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-ink text-ink " +
+            "flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-ink text-ink " +
             tint.icon
           }
         >
@@ -134,7 +134,7 @@ export function FunCard({
       </div>
       <h2 className="font-display text-lg font-extrabold leading-snug text-ink">{title}</h2>
       {description && (
-        <p className="text-base font-semibold text-ink-soft">
+        <p className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink-soft">
           {description.split("[[PASSAGE]]")[0].trim()}
         </p>
       )}
@@ -143,8 +143,8 @@ export function FunCard({
         href={href}
         className={
           rainbow
-            ? "rainbow-btn mt-auto inline-flex w-full items-center justify-center rounded-full px-6 py-4 text-xl font-extrabold"
-            : "press mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-4 text-lg font-extrabold text-white shadow-[0_5px_0_#5B6B1F] transition-colors hover:bg-accent-strong"
+            ? "rainbow-btn mt-auto inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-lg font-extrabold"
+            : "press mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-3 text-lg font-extrabold text-white shadow-[0_4px_0_#5B6B1F] transition-colors hover:bg-accent-strong"
         }
       >
         {cta}
@@ -176,13 +176,13 @@ export function FunLink({
     <Link
       href={href}
       className={
-        "flex flex-col gap-3 rounded-xl2 border-[3px] border-ink p-7 shadow-[0_8px_0_#2B3010] transition-transform hover:-translate-y-1 " +
+        "flex flex-col gap-2.5 rounded-xl2 border-2 border-ink p-5 shadow-[0_8px_22px_-10px_rgba(43,48,16,0.38)] transition-transform hover:-translate-y-1 " +
         tint.card
       }
     >
       <span
         className={
-          "flex h-14 w-14 items-center justify-center rounded-2xl border-[3px] border-ink text-ink " +
+          "flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-ink text-ink " +
           tint.icon
         }
       >
