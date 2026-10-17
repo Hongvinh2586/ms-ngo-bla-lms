@@ -51,6 +51,13 @@ export function computeBadges(attempts: AttemptStat[]): Badge[] {
   const quizzes = new Set(attempts.map((a) => a.quiz_id)).size;
   const best = attempts.reduce((m, a) => Math.max(m, Number(a.percentage)), 0);
   const run = longestStreak(attempts);
+  const byQuiz = new Map<string, AttemptStat[]>();
+  for (const a of attempts) byQuiz.set(a.quiz_id, [...(byQuiz.get(a.quiz_id) ?? []), a]);
+  const goldQuizzes = Array.from(byQuiz.values()).filter((l) => l.some((a) => Number(a.percentage) >= 90)).length;
+  const improved = Array.from(byQuiz.values()).some((l) => {
+    const s = [...l].sort((a, b) => (a.submitted_at < b.submitted_at ? -1 : 1));
+    return s.length >= 2 && Number(s[s.length - 1].percentage) > Number(s[0].percentage);
+  });
   return [
     { id: "first", emoji: "\u{1F423}", title: "First steps", hint: "Finish your first quiz", earned: quizzes >= 1 },
     { id: "five", emoji: "\u{1F4DA}", title: "Quiz explorer", hint: "Finish 5 different quizzes", earned: quizzes >= 5 },
@@ -60,5 +67,9 @@ export function computeBadges(attempts: AttemptStat[]): Badge[] {
     { id: "streak3", emoji: "\u{1F525}", title: "On fire", hint: "Practise 3 days in a row", earned: run >= 3 },
     { id: "streak7", emoji: "\u{1F680}", title: "Rocket week", hint: "Practise 7 days in a row", earned: run >= 7 },
     { id: "retake", emoji: "\u{1F4AA}", title: "Never give up", hint: "Try the same quiz twice", earned: attempts.length > quizzes },
+    { id: "gold3", emoji: "🥇", title: "Gold collector", hint: "Score 90% or more on 3 different quizzes", earned: goldQuizzes >= 3 },
+    { id: "twenty", emoji: "🎓", title: "Super learner", hint: "Finish 20 different quizzes", earned: quizzes >= 20 },
+    { id: "streak14", emoji: "🌈", title: "Rainbow streak", hint: "Practise 14 days in a row", earned: run >= 14 },
+    { id: "levelup", emoji: "📈", title: "Level up", hint: "Score higher when you retake a quiz", earned: improved },
   ];
 }
