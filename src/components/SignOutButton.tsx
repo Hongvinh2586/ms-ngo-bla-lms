@@ -8,6 +8,17 @@ export default function SignOutButton() {
   const supabase = createClient();
 
   async function handleSignOut() {
+    // Saved quiz answers belong to this student: forget them on a shared computer.
+    try {
+      const keys: string[] = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const k = window.localStorage.key(i);
+        if (k && k.startsWith("qdraft:")) keys.push(k);
+      }
+      keys.forEach((k) => window.localStorage.removeItem(k));
+    } catch {
+      // Storage not available: nothing to clear.
+    }
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
