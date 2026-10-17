@@ -160,6 +160,8 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 pb-20 pt-12">
+      {user && <ContinueCard />}
+
       <section className="flex flex-wrap items-center gap-10">
         <div className="min-w-0 flex-[1_1_380px]">
           <span className="inline-block rounded-full bg-[#FFE08A] px-4 py-1.5 text-sm font-extrabold uppercase tracking-wider text-ink">
@@ -254,8 +256,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {user && <ContinueCard />}
 
       <section className="mt-16">
         <p className="text-sm font-extrabold uppercase tracking-widest text-accent">Courses</p>
