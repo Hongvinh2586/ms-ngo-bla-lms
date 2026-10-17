@@ -12,10 +12,10 @@ function normalize(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-// For typed sentences: also ignore the full stop / ! / ? at the end and curly quotes,
+// For typed sentences: also ignore commas, the full stop / ! / ? at the end and curly quotes,
 // so "I went home" and "I went home." (and "I\u2019m" vs "I'm") are both accepted.
 function normalizeSentence(text: string): string {
-  return normalize(text.replace(/[\u2018\u2019]/g, "'"))
+  return normalize(text.replace(/[\u2018\u2019]/g, "'").replace(/,/g, " "))
     .replace(/[.!?]+$/, "")
     .trim();
 }
