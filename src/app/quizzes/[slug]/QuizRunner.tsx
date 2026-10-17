@@ -61,7 +61,7 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
   const t = total ? Math.min(1, answeredCount / total) : 0;
   const submitStyle = allDone
     ? { backgroundColor: "#FFC93C", color: "#2B3010" }
-    : { backgroundColor: mixColor("#EEF6CF", "#3E4A12", t), color: t >= 0.55 ? "#FFFFFF" : "#2B3010" };
+    : { backgroundColor: mixColor("#F4FAD9", "#2F5A12", t), color: t >= 0.55 ? "#FFFFFF" : "#2B3010" };
   const cheer =
     timeUp
       ? "Time's up! Press Submit when you are ready."
@@ -109,10 +109,10 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
         </p>
       )}
 
-      <div className="sticky bottom-2 z-10 mx-auto flex w-full max-w-md items-center gap-2 rounded-full bg-[#9AA84A] py-1.5 pl-1.5 pr-1.5 shadow-[0_6px_18px_rgba(62,74,18,0.30)] ring-1 ring-black/5">
+      <div className="sticky bottom-2 z-10 ml-auto flex w-fit max-w-full items-center gap-3 rounded-full bg-[#A9BA4E] py-1.5 pl-1.5 pr-1.5 shadow-[0_6px_18px_rgba(62,74,18,0.30)] ring-1 ring-black/5">
         <div
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full transition-all duration-500"
-          style={{ background: "conic-gradient(#2B3010 0 " + pct + "%, rgba(255,255,255,0.6) 0)" }}
+          style={{ background: "conic-gradient(#E4F76A 0 " + pct + "%, rgba(43,48,16,0.28) 0)" }}
           role="img"
           aria-label={Math.round(pct) + " percent answered"}
         >
