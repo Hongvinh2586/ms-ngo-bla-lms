@@ -202,3 +202,22 @@ html[data-calm] .text-ink-soft { color: #6A634C; }
 html[data-calm] .border-ink,
 html[data-calm] .border-ink\/80 { border-color: #8C8466; }
 html[data-calm] .border-line { border-color: #DDD3B0; }
+
+/* Classic look (class C16D7): thick outline and hard 3D shadow, as before the softer redesign. */
+.classic-card { border-width: 3px; box-shadow: 0 8px 0 #2B3010; }
+.classic-icon { border-width: 3px; }
+.classic-bar { border-width: 3px; box-shadow: 0 5px 0 #2B3010; }
+
+/* The quiz mascot runs along the progress track (it faces right). */
+@keyframes mascot-run {
+  0%, 100% { transform: scaleX(-1) translateY(0) rotate(-4deg); }
+  50% { transform: scaleX(-1) translateY(-5px) rotate(4deg); }
+}
+.mascot-run {
+  display: inline-block;
+  transform: scaleX(-1);
+  animation: mascot-run 0.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mascot-run { animation: none; }
+}
