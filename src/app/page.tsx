@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { FEATURED_COURSES, WRITING_SUB_COURSES } from "@/lib/types";
 import { streakOf, type AttemptStat } from "@/lib/badges";
 import { allowedFolders, canSee } from "@/lib/classAccess";
+import ContinueCard from "@/components/ContinueCard";
 
 function Svg({ children }: { children: ReactNode }) {
   return (
@@ -253,6 +254,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {user && <ContinueCard />}
 
       <section className="mt-16">
         <p className="text-sm font-extrabold uppercase tracking-widest text-accent">Courses</p>
