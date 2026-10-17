@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { SafeQuestion, StudentAnswer, StudentAnswers } from "@/lib/types";
-import { submitQuizAttempt } from "./actions";
+import { getHint, submitQuizAttempt } from "./actions";
+import ReadingTools from "@/components/ReadingTools";
 
 interface Props {
   quizId: string;
@@ -32,6 +33,10 @@ function mixColor(a: string, b: string, t: number): string {
   return "rgb(" + c.join(",") + ")";
 }
 
+// Each student may ask for a few hints per quiz, so they are used where they help most.
+const MAX_HINTS = 3;
+const DRAFT_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+
 export default function QuizRunner({ quizId, questions, section, mascot, timeLimitMinutes }: Props) {
   const limitSeconds = timeLimitMinutes && timeLimitMinutes > 0 ? Math.round(timeLimitMinutes * 60) : null;
   const [secondsLeft, setSecondsLeft] = useState<number | null>(limitSeconds);
@@ -49,8 +54,99 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
   const timeLow = secondsLeft !== null && limitSeconds !== null && !timeUp && secondsLeft <= Math.min(60, limitSeconds * 0.2);
 
   const [answers, setAnswers] = useState<StudentAnswers>({});
+  const [hints, setHints] = useState<Record<string, string>>({});
+  const [restoredCount, setRestoredCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Unfinished answers are kept on this device so a refresh or a closed tab does not lose
+  // them, and the home page can offer "Continue" (see components/ContinueCard.tsx).
+  const draftKey = "qdraft:" + quizId + ":" + (section ?? "");
+  const draftReady = useRef(false);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(draftKey);
+      if (raw) {
+        const d = JSON.parse(raw) as {
+          t?: number;
+          answers?: StudentAnswers;
+          hints?: Record<string, string>;
+        };
+        if (d && typeof d.t === "number" && Date.now() - d.t < DRAFT_MAX_AGE_MS && d.answers) {
+          const ids = new Set(questions.map((q) => q.id));
+          const kept: StudentAnswers = {};
+          for (const [id, a] of Object.entries(d.answers)) if (ids.has(id)) kept[id] = a;
+          const keptHints: Record<string, string> = {};
+          for (const [id, h] of Object.entries(d.hints ?? {})) if (ids.has(id) && typeof h === "string") keptHints[id] = h;
+          if (Object.keys(kept).length > 0) {
+            setAnswers(kept);
+            setHints(keptHints);
+            setRestoredCount(Object.keys(kept).length);
+          }
+        }
+      }
+    } catch {
+      // Storage unavailable or damaged: start fresh.
+    }
+    draftReady.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey]);
+
+  function saveDraft(a: StudentAnswers, h: Record<string, string>) {
+    try {
+      if (Object.keys(a).length === 0) {
+        window.localStorage.removeItem(draftKey);
+        return;
+      }
+      const heading = document.querySelector("h1")?.textContent ?? "";
+      const title = heading.replace(/^[^A-Za-z0-9\u00C0-\u1EF9]+/, "").trim();
+      window.localStorage.setItem(
+        draftKey,
+        JSON.stringify({
+          t: Date.now(),
+          href: window.location.pathname,
+          title: title + (section === "advanced" ? " (Advanced)" : ""),
+          total: questions.length,
+          answers: a,
+          hints: h,
+        })
+      );
+    } catch {
+      // Not saved, the quiz still works.
+    }
+  }
+  function clearDraft() {
+    try {
+      window.localStorage.removeItem(draftKey);
+    } catch {
+      // Nothing to clear.
+    }
+  }
+  useEffect(() => {
+    if (!draftReady.current) return;
+    saveDraft(answers, hints);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, hints]);
+
+  function startOver() {
+    clearDraft();
+    setAnswers({});
+    setHints({});
+    setRestoredCount(0);
+  }
+
+  async function askHint(questionId: string): Promise<boolean> {
+    if (hints[questionId] || Object.keys(hints).length >= MAX_HINTS) return false;
+    try {
+      const h = await getHint(questionId);
+      if (!h) return false;
+      setHints((prev) => ({ ...prev, [questionId]: h }));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  const hintsLeft = Math.max(0, MAX_HINTS - Object.keys(hints).length);
 
   const answeredCount = Object.keys(answers).length;
   const total = questions.length;
@@ -81,10 +177,12 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
 
   function handleSubmit() {
     setError(null);
+    clearDraft();
     startTransition(async () => {
       try {
         await submitQuizAttempt(quizId, answers, section);
       } catch (err) {
+        saveDraft(answers, hints);
         setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       }
     });
@@ -92,6 +190,21 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
 
   return (
     <div className="mt-8 flex flex-col gap-6 pb-20 sm:pb-8">
+      <ReadingTools />
+      {restoredCount > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-tint-butter px-4 py-2.5 text-sm font-bold text-ink">
+          <span>
+            {"\u{1F44B}"} Welcome back! We kept your {restoredCount} {restoredCount === 1 ? "answer" : "answers"}.
+          </span>
+          <button
+            type="button"
+            onClick={startOver}
+            className="press rounded-full border border-line bg-white px-3 py-1 text-xs font-extrabold text-ink hover:border-accent"
+          >
+            Start over
+          </button>
+        </div>
+      )}
       {questions.map((question, index) => (
         <QuestionCard
           key={question.id}
@@ -100,6 +213,9 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
           question={question}
           answer={answers[question.id]}
           onChange={(answer) => setAnswer(question.id, answer)}
+          hint={hints[question.id]}
+          hintsLeft={hintsLeft}
+          onHint={() => askHint(question.id)}
         />
       ))}
 
@@ -163,13 +279,21 @@ function QuestionCard({
   answer,
   onChange,
   mascot,
+  hint,
+  hintsLeft,
+  onHint,
 }: {
   index: number;
   mascot: string;
   question: SafeQuestion;
   answer: StudentAnswer | undefined;
   onChange: (answer: StudentAnswer) => void;
+  hint?: string;
+  hintsLeft: number;
+  onHint: () => Promise<boolean>;
 }) {
+  const [hintBusy, setHintBusy] = useState(false);
+  const [hintFailed, setHintFailed] = useState(false);
   // Typed-answer questions can also be answered by tapping a word in the word box.
   const blankType =
     question.type === "fill_blank" || question.type === "sentence_completion"
@@ -214,7 +338,34 @@ function QuestionCard({
           <TrueFalseInput answer={answer} onChange={onChange} />
         )}
         {(question.type === "fill_blank" || question.type === "sentence_completion") && (
-          <TextInput questionType={question.type} answer={answer} onChange={onChange} />
+          <>
+            <TextInput questionType={question.type} answer={answer} onChange={onChange} />
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {hint ? (
+                <p className="pick-pop rounded-full border border-line bg-tint-butter px-3.5 py-1.5 text-sm font-bold text-ink">
+                  {"\u{1F4A1}"} {hint}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  disabled={hintBusy || hintsLeft <= 0}
+                  onClick={async () => {
+                    setHintBusy(true);
+                    setHintFailed(false);
+                    const ok = await onHint();
+                    setHintBusy(false);
+                    if (!ok) setHintFailed(true);
+                  }}
+                  className="press rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-bold text-ink-soft transition-colors hover:border-accent hover:text-ink disabled:opacity-50"
+                >
+                  {"\u{1F4A1}"} {hintBusy ? "One moment…" : hintsLeft > 0 ? "Hint (" + hintsLeft + " left)" : "No hints left"}
+                </button>
+              )}
+              {hintFailed && !hint && (
+                <span className="text-xs font-semibold text-ink-soft">No hint for this one.</span>
+              )}
+            </div>
+          </>
         )}
         {question.type === "matching" && (
           <MatchingInput question={question} answer={answer} onChange={onChange} />
@@ -297,7 +448,7 @@ function PromptView({
   return (
     <div className="mt-3">
       {instruction && (
-        <p className="mb-2 text-[15px] font-bold text-accent-strong">
+        <p className="mb-2 text-[0.9375rem] font-bold text-accent-strong">
           {instruction}
         </p>
       )}
