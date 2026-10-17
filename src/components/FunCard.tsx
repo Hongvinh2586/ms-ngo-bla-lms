@@ -149,7 +149,7 @@ export function FunCard({
       <Link
         href={href}
         className={
-          rainbow
+          rainbow && !classic
             ? "rainbow-btn mt-auto inline-flex w-full items-center justify-center rounded-full px-6 font-extrabold " +
               (classic ? "py-4 text-xl" : "py-3 text-lg")
             : "press mt-auto inline-flex w-full items-center justify-center rounded-full bg-ink px-6 font-extrabold text-white transition-colors hover:bg-accent-strong " +
