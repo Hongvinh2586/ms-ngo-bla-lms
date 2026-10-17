@@ -185,3 +185,20 @@ a:hover .mascot-bob {
 .shadow-\[0_5px_0_\#2B3010\] { box-shadow: 0 8px 22px -10px rgba(43, 48, 16, 0.38); }
 .shadow-\[0_4px_0_\#2B3010\],
 .shadow-\[0_3px_0_\#2B3010\] { box-shadow: 0 3px 8px -3px rgba(43, 48, 16, 0.35); }
+
+/* Reading comfort (set from the quiz pages, see components/ReadingTools.tsx). */
+html[data-fs="0"] { font-size: 93.75%; }
+html[data-fs="2"] { font-size: 112.5%; }
+html[data-fs="3"] { font-size: 125%; }
+
+html[data-calm] body { background: #F5EEDB; color: #3B3626; }
+html[data-calm] .bg-paper { background-color: #F5EEDB; }
+html[data-calm] .bg-surface,
+html[data-calm] .bg-white { background-color: #FBF6E8; }
+html[data-calm] .bg-tint-butter { background-color: #EFE5C4; }
+html[data-calm] .bg-accent-soft { background-color: #E3E5C0; }
+html[data-calm] .text-ink { color: #3B3626; }
+html[data-calm] .text-ink-soft { color: #6A634C; }
+html[data-calm] .border-ink,
+html[data-calm] .border-ink\/80 { border-color: #8C8466; }
+html[data-calm] .border-line { border-color: #DDD3B0; }
