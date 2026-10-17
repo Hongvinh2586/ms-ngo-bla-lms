@@ -25,6 +25,13 @@ function formatClock(totalSeconds: number): string {
   return h > 0 ? h + ":" + mm + ":" + ss : mm + ":" + ss;
 }
 
+// Blend two #rrggbb colours: t=0 gives a, t=1 gives b.
+function mixColor(a: string, b: string, t: number): string {
+  const p = (hex: string, i: number) => parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+  const c = [0, 1, 2].map((i) => Math.round(p(a, i) + (p(b, i) - p(a, i)) * t));
+  return "rgb(" + c.join(",") + ")";
+}
+
 export default function QuizRunner({ quizId, questions, section, mascot, timeLimitMinutes }: Props) {
   const limitSeconds = timeLimitMinutes && timeLimitMinutes > 0 ? Math.round(timeLimitMinutes * 60) : null;
   const [secondsLeft, setSecondsLeft] = useState<number | null>(limitSeconds);
@@ -48,7 +55,13 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
   const answeredCount = Object.keys(answers).length;
   const total = questions.length;
   const pct = total ? (answeredCount / total) * 100 : 0;
-  const starsLit = total === 0 ? 0 : pct >= 100 ? 3 : pct >= 66 ? 2 : pct >= 33 ? 1 : 0;
+  const allDone = total > 0 && answeredCount >= total;
+  // The Submit button starts pale and gets darker as more questions are answered,
+  // then turns sunny yellow and pulses gently once every question has an answer.
+  const t = total ? Math.min(1, answeredCount / total) : 0;
+  const submitStyle = allDone
+    ? { backgroundColor: "#FFC93C", color: "#2B3010" }
+    : { backgroundColor: mixColor("#EEF6CF", "#3E4A12", t), color: t >= 0.55 ? "#FFFFFF" : "#2B3010" };
   const cheer =
     timeUp
       ? "Time's up! Press Submit when you are ready."
@@ -78,7 +91,7 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
   }
 
   return (
-    <div className="mt-8 flex flex-col gap-6">
+    <div className="mt-8 flex flex-col gap-6 pb-28 sm:pb-8">
       {questions.map((question, index) => (
         <QuestionCard
           key={question.id}
@@ -96,66 +109,44 @@ export default function QuizRunner({ quizId, questions, section, mascot, timeLim
         </p>
       )}
 
-      {secondsLeft !== null && (
-        <div
-          className={
-            "fixed bottom-[9.5rem] right-3 z-20 rounded-full border-[3px] border-ink px-4 py-2 text-lg font-extrabold tabular-nums shadow-[0_4px_0_#2B3010] sm:bottom-32 " +
-            (timeUp ? "bg-bad text-white" : timeLow ? "animate-pulse bg-bad-soft text-bad" : "bg-white text-ink")
-          }
-          role="timer"
-          aria-label={timeUp ? "Time is up" : "Time left " + formatClock(secondsLeft)}
-        >
-          {timeUp ? "Time's up!" : "\u23F0 " + formatClock(secondsLeft) + " left"}
-        </div>
-      )}
-
-      <div className="sticky bottom-3 z-10 flex flex-col gap-2 rounded-xl2 border-[3px] border-ink bg-tint-butter px-4 pb-3 pt-2 shadow-[0_5px_0_#2B3010]">
-        <div className="flex items-end gap-3">
-          <div className="relative min-w-0 flex-1 pt-7">
-            <span
-              className="mascot-bob absolute top-0 -translate-x-1/2 text-2xl leading-none transition-all duration-500"
-              style={{ left: Math.min(Math.max(pct, 5), 95) + "%" }}
-              aria-hidden="true"
-            >
-              {mascot ?? "\u{1F41D}"}
+      <div className="sticky bottom-3 z-10 flex flex-col items-end gap-2">
+        {secondsLeft !== null && (
+          <div
+            className={
+              "rounded-full px-3.5 py-1 text-sm font-extrabold tabular-nums shadow-[0_4px_14px_rgba(62,74,18,0.28)] " +
+              (timeUp ? "bg-bad text-white" : timeLow ? "animate-pulse bg-bad-soft text-bad" : "bg-white text-ink")
+            }
+            role="timer"
+            aria-label={timeUp ? "Time is up" : "Time left " + formatClock(secondsLeft)}
+          >
+            {timeUp ? "Time's up!" : "\u23F0 " + formatClock(secondsLeft) + " left"}
+          </div>
+        )}
+        <div className="flex w-full items-center gap-3 rounded-full bg-[#B8DC5C] py-2 pl-2.5 pr-2 shadow-[0_10px_28px_rgba(62,74,18,0.32)] ring-1 ring-black/5">
+          <div
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all duration-500"
+            style={{ background: "conic-gradient(#3E4A12 0 " + pct + "%, rgba(255,255,255,0.65) 0)" }}
+            role="img"
+            aria-label={Math.round(pct) + " percent answered"}
+          >
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-[#F6FAE0] text-xs font-extrabold text-ink">
+              {Math.round(pct)}%
             </span>
-            <div className="h-4 overflow-hidden rounded-full border-2 border-ink bg-white/80">
-              <div
-                className="h-full rounded-full bg-accent transition-all duration-500"
-                style={{ width: pct + "%" }}
-              />
-            </div>
           </div>
-          <div className="flex shrink-0 items-center" aria-label={starsLit + " of 3 stars"}>
-            {[0, 1, 2].map((i) => (
-              <svg
-                key={i + "-" + (i < starsLit ? "on" : "off")}
-                width="26"
-                height="26"
-                viewBox="0 0 24 24"
-                fill={i < starsLit ? "#FFC93C" : "#FFFFFF"}
-                stroke="#2B3010"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-                className={i < starsLit ? "star-lit" : ""}
-                aria-hidden="true"
-              >
-                <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />
-              </svg>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-base font-extrabold leading-tight text-ink">
               {answeredCount} of {total} answered
             </p>
-            <p className="text-xs font-bold leading-tight text-ink-soft sm:text-sm">{cheer}</p>
+            <p className="text-xs font-bold leading-tight text-ink/70 sm:text-sm">{cheer}</p>
           </div>
           <button
             onClick={handleSubmit}
             disabled={isPending}
-            className="press shrink-0 rounded-full bg-accent px-7 py-3 text-base font-extrabold text-white shadow-[0_5px_0_#3E4A12] transition-colors hover:bg-accent-strong disabled:opacity-60 sm:px-9 sm:py-3.5 sm:text-lg"
+            style={submitStyle}
+            className={
+              "press shrink-0 rounded-full px-6 py-3 text-base font-extrabold shadow-[0_3px_0_rgba(43,48,16,0.35)] transition-colors duration-500 disabled:opacity-60 sm:px-8 sm:text-lg " +
+              (allDone && !isPending ? "submit-ready" : "")
+            }
           >
             {isPending ? "Submitting…" : "Submit quiz"}
           </button>
