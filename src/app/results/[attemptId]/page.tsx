@@ -86,6 +86,9 @@ function formatCorrectAnswer(question: QuestionRow): string {
   }
 }
 
+const CORRECT_CHEERS = ["Yay!", "Nice one!", "You got it!", "Super!"];
+const TRY_CHEERS = ["Almost!", "Good try!", "So close!", "Next time!"];
+
 export default async function AttemptResultPage({
   params,
 }: {
@@ -230,7 +233,7 @@ export default async function AttemptResultPage({
               }`}
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">
+                <p className="text-xs font-bold text-ink-faint">
                   Question {index + 1}
                 </p>
                 <span
@@ -243,7 +246,14 @@ export default async function AttemptResultPage({
                 </span>
               </div>
 
-              <p className="mt-2 font-display text-lg font-semibold text-ink">{question.prompt}</p>
+              <p className="mt-2 flex items-center gap-2 text-sm font-bold text-ink-soft">
+                <span className={(answer.is_correct ? "mascot-hop" : "mascot-bob") + " text-2xl leading-none"} aria-hidden="true">
+                  {mascot}
+                </span>
+                <span>{answer.is_correct ? CORRECT_CHEERS[index % CORRECT_CHEERS.length] : TRY_CHEERS[index % TRY_CHEERS.length]}</span>
+              </p>
+
+              <p className="mt-2 whitespace-pre-line font-display text-[1.05rem] font-semibold leading-relaxed text-ink">{question.prompt}</p>
 
               <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                 <div>
