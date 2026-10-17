@@ -74,7 +74,7 @@ export default function ContinueCard() {
   }
 
   return (
-    <section className="mt-10" aria-label="Continue your quiz">
+    <section className="mb-8" aria-label="Continue your quiz">
       <div className="flex flex-wrap items-center gap-4 rounded-xl2 border-2 border-ink/80 bg-tint-butter p-5 shadow-[0_8px_22px_-10px_rgba(43,48,16,0.38)]">
         <span className="mascot-bob text-4xl leading-none" aria-hidden="true">
           {"\u{1F4D6}"}
