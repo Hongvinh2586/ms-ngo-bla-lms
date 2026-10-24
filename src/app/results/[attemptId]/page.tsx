@@ -21,7 +21,7 @@ interface AttemptRow {
   max_score: number;
   percentage: number;
   submitted_at: string;
-  quizzes: { title: string; slug: string } | null;
+  quizzes: { title: string; slug: string; category: string | null } | null;
 }
 
 interface AnswerRow {
@@ -86,6 +86,12 @@ function formatCorrectAnswer(question: QuestionRow): string {
   }
 }
 
+// Quizzes in these class folders only reveal the correct answers and explanations
+// to students who score at least REVEAL_PASS_PERCENT. Everyone else still sees which
+// questions were right or wrong, and can try again.
+const GATED_CATEGORIES = ["writing-a2", "writing-c15d6"];
+const REVEAL_PASS_PERCENT = 80;
+
 const CORRECT_CHEERS = ["Yay!", "Nice one!", "You got it!", "Super!"];
 const TRY_CHEERS = ["Almost!", "Good try!", "So close!", "Next time!"];
 
@@ -105,7 +111,7 @@ export default async function AttemptResultPage({
 
   const { data: attempt } = await supabase
     .from("quiz_attempts")
-    .select("id, quiz_id, score, max_score, percentage, submitted_at, quizzes ( title, slug )")
+    .select("id, quiz_id, score, max_score, percentage, submitted_at, quizzes ( title, slug, category )")
     .eq("id", params.attemptId)
     .eq("student_id", user.id)
     .single<AttemptRow>();
@@ -125,6 +131,9 @@ export default async function AttemptResultPage({
   const sortedAnswers = (answers ?? []).sort(
     (a, b) => a.questions.order_index - b.questions.order_index
   );
+
+  const gated = GATED_CATEGORIES.includes(attempt.quizzes?.category ?? "");
+  const showAnswers = !gated || attempt.percentage >= REVEAL_PASS_PERCENT;
 
   // Badges this attempt unlocked: earned with it, but not without it.
   const { data: allAttempts } = await supabase
@@ -222,6 +231,18 @@ export default async function AttemptResultPage({
         </div>
       )}
 
+      {!showAnswers && (
+        <div className="mt-8 rounded-xl2 border-[3px] border-ink bg-white p-5 text-center shadow-[0_5px_0_#2B3010]">
+          <p className="font-display text-xl font-extrabold text-ink">
+            Score {REVEAL_PASS_PERCENT}% or more to unlock the answers
+          </p>
+          <p className="mt-1 text-base font-semibold text-ink-soft">
+            You got {attempt.percentage}%. Look at which questions were right or wrong, then try
+            again! The correct answers and explanations appear when you reach {REVEAL_PASS_PERCENT}%.
+          </p>
+        </div>
+      )}
+
       <div className="mt-8 flex flex-col gap-5">
         {sortedAnswers.map((answer, index) => {
           const question = answer.questions;
@@ -260,13 +281,15 @@ export default async function AttemptResultPage({
                   <dt className="font-semibold text-ink-soft">Your answer</dt>
                   <dd className="text-ink">{formatAnswer(question, answer.student_answer)}</dd>
                 </div>
-                <div>
-                  <dt className="font-semibold text-ink-soft">Correct answer</dt>
-                  <dd className="text-ink">{formatCorrectAnswer(question)}</dd>
-                </div>
+                {showAnswers && (
+                  <div>
+                    <dt className="font-semibold text-ink-soft">Correct answer</dt>
+                    <dd className="text-ink">{formatCorrectAnswer(question)}</dd>
+                  </div>
+                )}
               </dl>
 
-              {question.explanation && (
+              {showAnswers && question.explanation && (
                 <p className="mt-3 border-t border-line/70 pt-3 text-sm text-ink-soft">
                   <span className="font-semibold text-ink">Why: </span>
                   {question.explanation}
