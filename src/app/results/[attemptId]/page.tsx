@@ -89,7 +89,7 @@ function formatCorrectAnswer(question: QuestionRow): string {
 // Quizzes in these class folders only reveal the correct answers and explanations
 // to students who score at least REVEAL_PASS_PERCENT. Everyone else still sees which
 // questions were right or wrong, and can try again.
-const GATED_CATEGORIES = ["writing-a2", "writing-c15d6"];
+const GATED_CATEGORIES = ["writing-a2", "writing-c15d6", "writing-b1-b2"];
 const REVEAL_PASS_PERCENT = 80;
 
 const CORRECT_CHEERS = ["Yay!", "Nice one!", "You got it!", "Super!"];
